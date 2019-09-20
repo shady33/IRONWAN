@@ -58,10 +58,11 @@ void LoRaMac::initialize(int stage)
         waitDelay2Time = 0.6;
         listening2Time = 0.3;
 
+        networkServerNumber = par("networkServerNumber");
         const char *addressString = par("address");
         if (!strcmp(addressString, "auto")) {
             // assign automatic address
-            address = DevAddr::generateAutoAddress();
+            address = DevAddr::generateAutoAddressForNS(networkServerNumber);
             // change module parameter from "auto" to concrete address
             par("address").setStringValue(address.str().c_str());
         }

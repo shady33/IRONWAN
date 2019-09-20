@@ -27,6 +27,7 @@ class LoRaMac : public MACProtocolBase
      */
     //@{
     DevAddr address;
+    unsigned int networkServerNumber;
     bool useAck = true;
     double bitrate = NaN;
     int headerLength = -1;

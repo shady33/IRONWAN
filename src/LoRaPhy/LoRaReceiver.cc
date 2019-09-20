@@ -51,7 +51,7 @@ void LoRaReceiver::initialize(int stage)
                  LoRaMac *loRamac = check_and_cast<LoRaMac *>(getContainingNode(this)->getSubmodule("LoRaNic")->getSubmodule("mac"));
                  // loRaCF = loRamac->carrierFrequency;
                  loRaCF = units::values::Hz(869460500);
-                 loRaSF = 7;
+                 loRaSF = 9;
                  loRaBW = units::values::Hz(125000);
              }else if(appLayer.compare("AeseLoRaApp") == 0){
                  // FIXME: Laksh: this is hardcoded

@@ -148,6 +148,24 @@ DevAddr DevAddr::generateAutoAddress()
     return addr;
 }
 
+DevAddr DevAddr::generateAutoAddressForNS(unsigned int ns)
+{
+#if OMNETPP_VERSION >= 0x500
+    if (!simulationLifecycleListenerAdded) {
+        // NOTE: EXECUTE_ON_STARTUP is too early and would add the listener to StaticEnv
+        DevAddr::SimulationLifecycleListener();
+        getEnvir()->addLifecycleListener(new DevAddr::SimulationLifecycleListener());
+        simulationLifecycleListenerAdded = true;
+    }
+#endif // if OMNETPP_VERSION >= 0x500
+    ++autoAddressCtr;
+
+    uint32 intAddr = ((ns & 0xffffffffUL) << 24) + (autoAddressCtr & 0xffffffffUL);
+    DevAddr addr(intAddr);
+    return addr;
+}
+
+
 int DevAddr::generateActuatorNumber()
 {
     DevAddr::actuatorNumberCtr = DevAddr::actuatorNumberCtr + 1;

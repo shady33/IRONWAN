@@ -25,6 +25,22 @@ namespace inet {
 
 Define_Module(PacketForwarder);
 
+PacketForwarder::~PacketForwarder()
+{
+    cancelAndDelete(rtEvent);
+    cancelAndDelete(sendFeedback);
+    cancelAndDelete(sendActuation);
+    cancelAndDelete(sendActuationNoSimulink);
+    for(int i = 0; i < 8;i++){
+        cancelAndDelete(sendDownlink[i]);
+    }
+    for(uint i=0;i<knownNodes.size();i++)
+    {
+        delete knownNodes[i].historyAllSNIR;
+        delete knownNodes[i].historyAllRSSI;
+        delete knownNodes[i].receivedSeqNumber;
+    }
+}
 
 void PacketForwarder::initialize(int stage)
 {
@@ -42,7 +58,8 @@ void PacketForwarder::initialize(int stage)
         sendActuation = new cMessage("SendActuation");
         sendActuationNoSimulink = new cMessage("sendActuationNoSimulink");
         enableDQ = par("enableDQ");
-        
+        enableActuation = par("enableActuation");
+
         actuationPeriod = par("actuationPeriod");
         timeToStartSignal = par("timeToStartSignal");
         sendImmediateActuation = par("sendImmediateActuation");
@@ -52,6 +69,8 @@ void PacketForwarder::initialize(int stage)
         numberOfAeseNodes = par("numberOfAeseNodes");
         numberOfAeseActuatorNodes = par("numberOfAeseActuatorNodes");
         numberOfSubSystems = par("numberOfSubSystems");
+
+        gwNSNumber = par("gwNSNumber");
 
         if(enableDQ){
             noOfMslots = par("noOfMslots");
@@ -98,12 +117,14 @@ void PacketForwarder::initialize(int stage)
             MiniSlots.setName("EmptyMSlots");
             sendFeedbackMessage(true);
         }
-        if(schedulerClass == "cSimulinkRTScheduler"){
-           actuationQueue.setName("actuationQueue");
-           scheduleAt(simTime() + actuationPeriod,sendActuation);
-        }else if(!sendImmediateActuation){
-            actuationQueue.setName("actuationQueue");
-            scheduleAt(simTime() + actuationPeriod,sendActuationNoSimulink);
+        if(enableActuation){
+            if(schedulerClass == "cSimulinkRTScheduler"){
+               actuationQueue.setName("actuationQueue");
+               scheduleAt(simTime() + actuationPeriod,sendActuation);
+            }else if(!sendImmediateActuation){
+                actuationQueue.setName("actuationQueue");
+                scheduleAt(simTime() + actuationPeriod,sendActuationNoSimulink);
+            }
         }
         startUDP();
         getSimulation()->getSystemModule()->subscribe("LoRa_AppPacketSent", this);
@@ -116,8 +137,15 @@ void PacketForwarder::startUDP()
     socket.setOutputGate(gate("udpOut"));
     const char *localAddress = par("localAddress");
     socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), localPort);
-
+    
     const char *destAddrs = par("destAddresses");
+    // std::string destAddrsNew;
+    // std::cout << *destAddrs << std::endl;
+    // if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
+    //     std::stringstream ss;
+    //     ss << "networkServer[" << gwNSNumber << "]";
+    //     destAddrsNew = ss.str();
+    // }
     cStringTokenizer tokenizer(destAddrs);
     const char *token;
 
@@ -128,7 +156,7 @@ void PacketForwarder::startUDP()
         if (result.isUnspecified())
             EV_ERROR << "cannot resolve destination address: " << token << endl;
         else
-            EV << "Got destination address: " << token << endl;
+            EV << "Got destination address: " << token << " with result: " << result << endl;
         destAddresses.push_back(result);
     }
 }
@@ -150,6 +178,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         // FIXME : debug for now to see if LoRaMAC frame received correctly from network server
         EV << "Received UDP packet" << endl;
         if(simTime()-timeOfLastPacket > 0.5){
+            sentMsgs++;
             timeOfLastPacket = simTime();
             LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
             send(frame, "lowerLayerOut");
@@ -196,7 +225,7 @@ void PacketForwarder::processPacketMatlab()
 {
     while(numRecvBytes > 0){
 
-        double trigger[numberOfSubSystems];
+        // double trigger[numberOfSubSystems];
         double values[numberOfAeseActuatorNodes]; 
 
         int totalPacketSize = (numberOfSubSystems * 8) + (numberOfAeseActuatorNodes * 8);
@@ -207,11 +236,11 @@ void PacketForwarder::processPacketMatlab()
                     unsigned char c[8];
                 }z;
                 memcpy(z.c,&recvBuffer[numRecvBytes-totalPacketSize+i*8],8); // memcpy(z.c,&recvBuffer[numRecvBytes-104+i*8],8);
-                trigger[i] = z.d;
+                // trigger[i] = z.d;
                 //std::cout << trigger[i] << " ";
             }
             //std::cout << std::endl;
-            
+              
             for(int i = 0; i < numberOfAeseActuatorNodes; i++){
                 union{
                     double d;
@@ -254,7 +283,6 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     double rssi = w_rssi.get()*1000;
     frame->setRSSI(math::mW2dBm(rssi));
     frame->setSNIR(cInfo->getMinSNIR());
-    bool exist = false;
     EV << frame->getTransmitterAddress() << frame->getMsgType() << endl;
 
     int packettype = frame->getMsgType();
@@ -308,51 +336,55 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
         }
         delete packet;
     }else if(packettype == JOIN_REQUEST){
-        EV << "Sending to server" << endl;
-    	L3Address destAddr = destAddresses[0];
+        L3Address destAddr = destAddresses[0];
+        EV << "Sending to server" << destAddr << endl;
         if (frame->getControlInfo())
             delete frame->removeControlInfo();
-        LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>((frame)->decapsulate());
-            
-        if(sendImmediateActuation){
-            LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
-            request->setMsgType(ACTUATION);
-            request->setActuatorNumber(0,packet->getSensorNumber());
-            request->setPacketGeneratedTime(0,packet->getPacketGeneratedTime(0));
-            request->setActuatorSequenceNumbers(0,packet->getActuatorSequenceNumbers(0));
-            for(int la=1;la<128;la++){
-                request->setActuatorNumber(la,-1);
-                request->setPacketGeneratedTime(la,-1);
-                request->setActuatorSequenceNumbers(la,-1);
+        
+        if(enableActuation){
+            LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>((frame)->decapsulate());
+            if(sendImmediateActuation){
+                LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
+                request->setMsgType(ACTUATION);
+                request->setActuatorNumber(0,packet->getSensorNumber());
+                request->setPacketGeneratedTime(0,packet->getPacketGeneratedTime(0));
+                request->setActuatorSequenceNumbers(0,packet->getActuatorSequenceNumbers(0));
+                for(int la=1;la<128;la++){
+                    request->setActuatorNumber(la,-1);
+                    request->setPacketGeneratedTime(la,-1);
+                    request->setActuatorSequenceNumbers(la,-1);
+                }
+                sendActuationMessageNow(request);
+            }else{
+                // Add to queue
+                actuatorNumbers[currentCntActuators] = packet->getSensorNumber();
+                packetGeneratedTime[currentCntActuators] = packet->getPacketGeneratedTime(0);
+                actuatorSequenceNumbers[currentCntActuators] = packet->getActuatorSequenceNumbers(0);
+                currentCntActuators = currentCntActuators + 1;
             }
-            sendActuationMessageNow(request);
-        }else{
-            // Add to queue
-            actuatorNumbers[currentCntActuators] = packet->getSensorNumber();
-            packetGeneratedTime[currentCntActuators] = packet->getPacketGeneratedTime(0);
-            actuatorSequenceNumbers[currentCntActuators] = packet->getActuatorSequenceNumbers(0);
-            currentCntActuators = currentCntActuators + 1;
+
+            if(schedulerClass == "cSimulinkRTScheduler"){
+                std::string str = frame->getTransmitterAddress().str();
+
+                std::vector<int> array;
+                std::stringstream ss(str);
+                std::string line;
+                while (std::getline(ss,line,'-'))
+                    array.push_back(std::strtol(line.c_str(), 0, 16));
+                
+                double d = -array[3] + numberOfAeseActuatorNodes + (packet->getSampleMeasurement()/100) - 0.1; // 10
+                //std::cout << d << " " << array[3] << " " << packet->getSampleMeasurement() << std::endl;
+                if(d<-1){
+                    rtScheduler->sendValue(d,this);
+                }
+            }
         }
 
-        if(schedulerClass == "cSimulinkRTScheduler"){
-             std::string str = frame->getTransmitterAddress().str();
-
-             std::vector<int> array;
-             std::stringstream ss(str);
-             std::string line;
-             while (std::getline(ss,line,'-'))
-                 array.push_back(std::strtol(line.c_str(), 0, 16));
-             double d = -array[3] + numberOfAeseActuatorNodes + (packet->getSampleMeasurement()/100) - 0.1; // 10
-             //std::cout << d << " " << array[3] << " " << packet->getSampleMeasurement() << std::endl;
-             if(d<-1){
-                 rtScheduler->sendValue(d,this);
-             }
-         }
-        delete packet;
-        if(frame->getConfirmedMessage())
-            socket.sendTo(frame, destAddr, destPort);
-        else
-            delete pk;
+        // delete packet;
+        // if(frame->getConfirmedMessage())
+        socket.sendTo(frame, destAddr, destPort);
+        // else
+        //     delete pk;
     }
 
     // FIXME : Identify network server message is destined for.
@@ -361,8 +393,8 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     //    delete frame->removeControlInfo();
 
     // socket.sendTo(frame, destAddr, destPort);
-    if(packettype != JOIN_REQUEST)
-        delete pk;
+    // if(packettype != JOIN_REQUEST)
+    //     delete pk;
 }
 
 void PacketForwarder::scheduleDownlink(int val,cPacket *pk)
@@ -419,18 +451,7 @@ void PacketForwarder::receiveSignal(cComponent *source, simsignal_t signalID, lo
 void PacketForwarder::finish()
 {
     recordScalar("LoRa_GW_DER", double(counterOfReceivedPackets)/counterOfSentPacketsFromNodes);
-    cancelAndDelete(rtEvent);
-    cancelAndDelete(sendFeedback);
-    cancelAndDelete(sendActuation);
-    for(int i = 0; i < 8;i++){
-        cancelAndDelete(sendDownlink[i]);
-    }
-    for(uint i=0;i<knownNodes.size();i++)
-    {
-        delete knownNodes[i].historyAllSNIR;
-        delete knownNodes[i].historyAllRSSI;
-        delete knownNodes[i].receivedSeqNumber;
-    }
+    recordScalar("Sent Messages by Gateway",sentMsgs);
 }
 
 void PacketForwarder::sendActuationMessage(){

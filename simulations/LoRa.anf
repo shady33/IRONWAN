@@ -3,8 +3,6 @@
   <inputs>
     <inputs name="results/*.vec"/>
     <inputs name="results/*.sca"/>
-    <inputs name="results/m15/*.vec"/>
-    <inputs name="results/m15/*.sca"/>
   </inputs>
   <datasets/>
   <chartSheets/>

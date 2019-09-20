@@ -26,7 +26,7 @@ simple NetworkServerApp like IUDPApp
     string localAddress = default("");
     int destPort = default(-1);
     bool evaluateADRinServer = default(false);
-	
+	int networkServerNumber = default(0);
 	string adrMethod = default("max");
 	
     gates:

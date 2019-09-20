@@ -408,8 +408,7 @@ void LoRaRadio::startReception(cMessage *timer, IRadioSignal::SignalPart part)
         auto transmission = radioFrame->getTransmission();
         const LoRaTransmission *loRaTransmission = check_and_cast<const LoRaTransmission *>(radioFrame->getTransmission());
         auto isReceptionAttempted = medium->isReceptionAttempted(this, transmission, part);
-        EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
-        if (isReceptionAttempted && loRaTransmission->getLoRaCF() == currentFrequency)
+        EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;        if (isReceptionAttempted && loRaTransmission->getLoRaCF() == currentFrequency)
         {
             receptionTimer = timer;
         }
@@ -468,7 +467,7 @@ void LoRaRadio::endReception(cMessage *timer)
         auto transmission = radioFrame->getTransmission();
         // TODO: this would draw twice from the random number generator in isReceptionSuccessful: auto isReceptionSuccessful = medium->isReceptionSuccessful(this, transmission, part);
         auto isReceptionSuccessful = medium->getReceptionDecision(this, radioFrame->getListening(), transmission, part)->isReceptionSuccessful();
-        EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;        
+        EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
         auto macFrame = medium->receivePacket(this, radioFrame);
         if(isReceptionSuccessful)
         {
@@ -482,8 +481,9 @@ void LoRaRadio::endReception(cMessage *timer)
         }
         receptionTimer = nullptr;
     }
-    else
+    else{
         EV_INFO << "Reception ended: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+    }
     updateTransceiverState();
     updateTransceiverPart();
     //check_and_cast<LoRaMedium *>(medium)->fireReceptionEnded(reception);

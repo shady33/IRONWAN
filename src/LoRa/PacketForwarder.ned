@@ -27,6 +27,7 @@ simple PacketForwarder like IUDPApp
     int localPort = default(-1);  // local port (-1: use ephemeral port)
     string destAddresses = default(""); // list of IP addresses, separated by spaces ("": don't send)
     string localAddress = default("");
+    int gwNSNumber = default(0);
     int destPort;
 	double timeToStartSignal @unit(s) = default(10s);
     double actuationPeriod @unit(s) = default(1s);
@@ -46,6 +47,7 @@ simple PacketForwarder like IUDPApp
     bool sendImmediateActuation = default(false);
 
     bool enableDQ = default(false);
+    bool enableActuation = default(false);
     gates:
 		input lowerLayerIn @labels(PacketForwarder/up);
         output lowerLayerOut @labels(PacketForwarder/down);

@@ -175,6 +175,7 @@ class INET_API DevAddr
      * suffix.
      */
     static DevAddr generateAutoAddress();
+    static DevAddr generateAutoAddressForNS(unsigned int ns);
 
     static int generateActuatorNumber();
     static int generateSensorNumber();

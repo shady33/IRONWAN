@@ -76,7 +76,9 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     int numOfReceivedPackets;
     std::string adrMethod;
     std::string schedulerClass;
-
+    int networkServerNumber;
+    int sentMsgs;
+    
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;

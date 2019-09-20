@@ -83,6 +83,7 @@ void SimpleLoRaApp::initialize(int stage)
 
         sentPackets = 0;
         receivedADRCommands = 0;
+        receivedAckMessages = 0;
         numberOfPacketsToSend = par("numberOfPacketsToSend");
 
         LoRa_AppPacketSent = registerSignal("LoRa_AppPacketSent");
@@ -136,6 +137,7 @@ void SimpleLoRaApp::finish()
     recordScalar("finalSF", loRaSF);
     recordScalar("sentPackets", sentPackets);
     recordScalar("receivedADRCommands", receivedADRCommands);
+    recordScalar("receivedAckMessages", receivedAckMessages);
     cancelAndDelete(rtEvent);
     cancelAndDelete(retryMeasurements);
     cancelAndDelete(sendMeasurements);
@@ -283,6 +285,8 @@ void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
             // sendMeasurements = new cMessage("sendMeasurements");
             // scheduleAt(simTime()+timeToNextPacket, sendMeasurements);
         // }
+    }else if(packet->getMsgType() == JOIN_REPLY){
+        receivedAckMessages++;
     }else{
         if (simTime() >= getSimulation()->getWarmupPeriod())
             receivedADRCommands++;

@@ -34,6 +34,7 @@ void NetworkServerApp::initialize(int stage)
         localPort = par("localPort");
         destPort = par("destPort");
         adrMethod = par("adrMethod").stdstringValue();
+        networkServerNumber = par("networkServerNumber");
     } else if (stage == INITSTAGE_APPLICATION_LAYER) {
         startUDP();
         getSimulation()->getSystemModule()->subscribe("LoRa_AppPacketSent", this);
@@ -103,6 +104,7 @@ void NetworkServerApp::finish()
     {
         delete receivedPackets[i].rcvdPacket;
     }
+    receivedPackets.clear();
     recordScalar("numOfReceivedPacketsPerSF SF7", counterOfReceivedPacketsPerSF[0]);
     recordScalar("numOfReceivedPacketsPerSF SF8", counterOfReceivedPacketsPerSF[1]);
     recordScalar("numOfReceivedPacketsPerSF SF9", counterOfReceivedPacketsPerSF[2]);
@@ -138,6 +140,7 @@ void NetworkServerApp::finish()
         recordScalar("DER SF12", double(counterOfReceivedPacketsPerSF[5]) / counterOfSentPacketsFromNodesPerSF[5]);
     else
         recordScalar("DER SF12", 0);
+    recordScalar("Sent ADR messages", sentMsgs);
 }
 
 bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)
@@ -209,7 +212,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
-        scheduleAt(simTime() + 1.8, rcvPkt.endOfWaiting); //1.2
+        scheduleAt(simTime() + 1.9, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
 }
@@ -284,10 +287,10 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
     // {
     //     sendADRAckRep = true;
     // }
-
+    // std::cout << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(3)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(2)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(1)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(0)) << std::endl;
     for(uint i=0;i<knownNodes.size();i++)
     {
-        if(knownNodes[i].srcAddr == pkt->getTransmitterAddress())
+        if((knownNodes[i].srcAddr == pkt->getTransmitterAddress()) && ((pkt->getTransmitterAddress()).getAddressByte(0) == networkServerNumber))
         {
             knownNodes[i].receivedSNIR.push_back(SNIRinGW);
             //knownNodes[i].historyAllSNIR->record(SNIRinGW);
@@ -385,13 +388,33 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         //FIXME: What value to set for LoRa TP
         //frameToSend->setLoRaTP(pkt->getLoRaTP());
         frameToSend->setLoRaTP(14);
-        frameToSend->setLoRaCF(pkt->getLoRaCF());
-        frameToSend->setLoRaSF(pkt->getLoRaSF());
+        // frameToSend->setLoRaCF(pkt->getLoRaCF());
+        frameToSend->setLoRaCF(inet::units::values::Hz(869460500));
+        // frameToSend->setLoRaSF(pkt->getLoRaSF());
+        frameToSend->setLoRaSF(9);
         frameToSend->setLoRaBW(pkt->getLoRaBW());
+        sentMsgs++;
         socket.sendTo(frameToSend, pickedGateway, destPort);
-    }else{
-        sendBackDownlink(pkt,pickedGateway);
+    }else if(pkt->getConfirmedMessage()){
+        LoRaAppPacket *downlink = new LoRaAppPacket("ACKCommand");
+        downlink->setMsgType(JOIN_REPLY);
+        LoRaMacFrame *frameToSend = new LoRaMacFrame("ACKPacket");
+        frameToSend->encapsulate(downlink);
+        frameToSend->setReceiverAddress(pkt->getTransmitterAddress());
+        //FIXME: What value to set for LoRa TP
+        //frameToSend->setLoRaTP(pkt->getLoRaTP());
+        frameToSend->setLoRaTP(50);
+        // frameToSend->setLoRaCF(pkt->getLoRaCF());
+        frameToSend->setLoRaCF(inet::units::values::Hz(869460500));
+        // frameToSend->setLoRaSF(pkt->getLoRaSF());
+        frameToSend->setLoRaSF(9);
+        frameToSend->setLoRaBW(pkt->getLoRaBW());
+        sentMsgs++;
+        socket.sendTo(frameToSend, pickedGateway, destPort);
     }
+    // else{
+    //     sendBackDownlink(pkt,pickedGateway);
+    // }
     // delete rcvAppPacket;
 }
 

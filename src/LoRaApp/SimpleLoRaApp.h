@@ -63,6 +63,7 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         int numberOfPacketsToSend;
         int sentPackets;
         int receivedADRCommands;
+        int receivedAckMessages;
         int lastSentMeasurement;
         simtime_t timeToFirstPacket;
         simtime_t timeToNextPacket;

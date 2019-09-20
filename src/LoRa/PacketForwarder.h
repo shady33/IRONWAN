@@ -90,12 +90,15 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int numberOfAeseActuatorNodes;
     int numberOfSubSystems;
     
+    bool enableActuation;
     bool sendImmediateActuation;
     simtime_t packetGeneratedTime[128];
     int actuatorNumbers[128];
     int actuatorSequenceNumbers[128];
     int currentCntActuators;
 
+    int gwNSNumber;
+    int sentMsgs;
   protected:
     std::vector<L3Address> destAddresses;
     int localPort = -1, destPort = -1;
@@ -124,9 +127,10 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void updateAndLogNode(LoRaMacFrame* pkt);
 
   public:
-      simsignal_t LoRa_GWPacketReceived;
-      int counterOfSentPacketsFromNodes = 0;
-      int counterOfReceivedPackets = 0;
+    virtual ~PacketForwarder();
+    simsignal_t LoRa_GWPacketReceived;
+    int counterOfSentPacketsFromNodes = 0;
+    int counterOfReceivedPackets = 0;
 };
 } //namespace inet
 #endif
