@@ -202,6 +202,8 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         {
             packetExists = true;
             receivedPackets[i].possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
+            delete pkt;
+            i = receivedPackets.size();
         }
     }
     if(packetExists == false)
@@ -214,7 +216,6 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         scheduleAt(simTime() + 1.9, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
-    delete pkt;
 }
 
 void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
