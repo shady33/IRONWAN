@@ -182,6 +182,8 @@ void PacketForwarder::handleMessage(cMessage *msg)
             timeOfLastPacket = simTime();
             LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
             send(frame, "lowerLayerOut");
+        }else{
+            delete msg;
         }
     }
 

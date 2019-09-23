@@ -297,7 +297,6 @@ void LoRaMac::handleWithFsm(cMessage *msg)
                                   msg == droppedPacket,
                                   LISTENING_2,
             );
-
         }
     }
 }
