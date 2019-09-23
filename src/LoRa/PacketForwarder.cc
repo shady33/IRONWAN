@@ -185,9 +185,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         }else{
             delete msg;
         }
-    }
-
-    if(msg->isSelfMessage()){
+    }else if(msg->isSelfMessage()){
         std::string s(msg->getName());
         if(s.compare("rtEvent") == 0){
             processPacketMatlab();
