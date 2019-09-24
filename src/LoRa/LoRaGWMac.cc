@@ -22,6 +22,11 @@ namespace inet {
 
 Define_Module(LoRaGWMac);
 
+LoRaGWMac::~LoRaGWMac()
+{
+    cancelAndDelete(dutyCycleTimer);    
+}
+
 void LoRaGWMac::initialize(int stage)
 {
     MACProtocolBase::initialize(stage);
@@ -54,7 +59,6 @@ void LoRaGWMac::finish()
 {
     recordScalar("GW_forwardedDown", GW_forwardedDown);
     recordScalar("GW_droppedDC", GW_droppedDC);
-    cancelAndDelete(dutyCycleTimer);
 }
 
 

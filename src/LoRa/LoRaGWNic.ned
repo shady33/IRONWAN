@@ -43,9 +43,10 @@ module LoRaGWNic like IWirelessNic
                 @display("p=100,250");
         }
     connections:
-        upperLayerIn --> mac.upperLayerIn;
-        mac.lowerLayerOut --> radio.upperLayerIn;
-        mac.upperLayerOut --> { @display("m=n"); } --> upperLayerOut;
+	    upperLayerIn --> mac.upperLayerIn;
+	    mac.lowerLayerOut --> radio.upperLayerIn;
+	    mac.upperLayerOut --> { @display("m=n"); } --> upperLayerOut;
+        
         radioIn --> { @display("m=s"); } --> radio.radioIn;
         radio.upperLayerOut --> mac.lowerLayerIn;
 

@@ -168,6 +168,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         EV << "Received LoRaMAC frame" << endl;
         // std::cout << "Received LoRaMAC frame in GW" << std::endl;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
+        std::cout << frame << std::endl;
         updateAndLogNode(frame);
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
             processLoraMACPacket(PK(msg));

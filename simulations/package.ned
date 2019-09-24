@@ -10,7 +10,8 @@ import loranetwork.LoraNode.AeseLoRaActuatorNode;
 import loranetwork.LoraNode.AeseLoRaNode;
 import loranetwork.LoraNode.LoRaGW;
 import loranetwork.LoraNode.LoRaNode;
-
+import loranetwork.AeseNeighbours.PacketDuplicator;
+import loranetwork.AeseNeighbours.LoRaAeseGW;
 
 @license(LGPL);
 network LoRaNetworkTest
@@ -88,10 +89,10 @@ network LoRaNetworkMultipleVendors
         loRaNodes[numberOfNodes]: LoRaNode {
             @display("p=83.664,233.856");
         }
-        loRaGWNS0[numberOfGatewaysPerNS]: LoRaGW {
+        loRaGWNS0[numberOfGatewaysPerNS]: LoRaAeseGW {
             @display("p=83.664,150.192;is=s");
         }
-        loRaGWNS1[numberOfGatewaysPerNS]: LoRaGW {
+        loRaGWNS1[numberOfGatewaysPerNS]: LoRaAeseGW {
             @display("p=83.664,150.192;is=s");
         }
         LoRaMedium: LoRaMedium {
@@ -109,9 +110,9 @@ network LoRaNetworkMultipleVendors
         gwRouter[numberOfGatewaysPerNS*2]: Router;
         nsRouter[numberOfNS]: Router;
     connections:
-        for i=0..numberOfNS-1{
-        	networkServer[i].ethg++ <--> Eth1G <--> nsRouter[i].ethg++;
-        	nsRouter[i].pppg++ <--> Eth1G <--> internetCloud.pppg++;
+        for i=0..numberOfNS-1 {
+            networkServer[i].ethg++ <--> Eth1G <--> nsRouter[i].ethg++;
+            nsRouter[i].pppg++ <--> Eth1G <--> internetCloud.pppg++;
         }
         for i=0..numberOfGatewaysPerNS-1 {
             internetCloud.pppg++ <--> Eth1G <--> gwRouter[i].pppg++;

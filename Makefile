@@ -48,6 +48,8 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
 OBJS = \
+    $O/src/AeseNeighbours/NeighbourTalker.o \
+    $O/src/AeseNeighbours/PacketDuplicator.o \
     $O/src/LoRa/LoRaGWMac.o \
     $O/src/LoRa/LoRaGWRadio.o \
     $O/src/LoRa/LoRaMac.o \

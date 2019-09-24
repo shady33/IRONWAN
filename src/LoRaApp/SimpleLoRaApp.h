@@ -91,6 +91,8 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
 	bool success;
     public:
         SimpleLoRaApp() {}
+        virtual ~SimpleLoRaApp();
+
         virtual std::string str() const override;
         simsignal_t LoRa_AppPacketSent;
         //LoRa physical layer parameters

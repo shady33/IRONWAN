@@ -22,6 +22,13 @@ namespace inet {
 
 Define_Module(SimpleLoRaApp);
 
+SimpleLoRaApp::~SimpleLoRaApp()
+{
+    cancelAndDelete(rtEvent);
+    cancelAndDelete(retryMeasurements);
+    cancelAndDelete(sendMeasurements);    
+}
+
 void SimpleLoRaApp::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
@@ -138,9 +145,6 @@ void SimpleLoRaApp::finish()
     recordScalar("sentPackets", sentPackets);
     recordScalar("receivedADRCommands", receivedADRCommands);
     recordScalar("receivedAckMessages", receivedAckMessages);
-    cancelAndDelete(rtEvent);
-    cancelAndDelete(retryMeasurements);
-    cancelAndDelete(sendMeasurements);
 }
 
 void SimpleLoRaApp::handleMessage(cMessage *msg)

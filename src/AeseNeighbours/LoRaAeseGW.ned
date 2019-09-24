@@ -13,9 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package loranetwork.LoraNode;
+package loranetwork.AeseNeighbours;
 
 import inet.linklayer.contract.IWiredNic;
+import inet.linklayer.ieee80211.mac.Ieee80211CompatibleMac;
 import inet.mobility.static.StationaryMobility;
 import inet.networklayer.common.InterfaceTable;
 import inet.networklayer.contract.INetworkLayer;
@@ -24,7 +25,8 @@ import inet.transportlayer.contract.IUDP;
 import loranetwork.LoRa.LoRaGWNic;
 import loranetwork.LoRa.PacketForwarder;
 
-module LoRaGW
+
+module LoRaAeseGW
 {
     parameters:
         @networkNode();
@@ -35,7 +37,7 @@ module LoRaGW
         int numUdpApps = default(0);
         bool hasUdp = true;
         string udpType = default(firstAvailableOrEmpty("UDP"));
-
+        bool AeseGWEnabled = default(false);
         @display("bgb=611,560;i=device/antennatower");
     gates:
         inout ethg[] @labels(EtherFrame-conn);
@@ -52,6 +54,9 @@ module LoRaGW
         packetForwarder: PacketForwarder {
             @display("p=256.056,162.432;is=vl");
         }
+        neighbourTalker: NeighbourTalker {
+            @display("p=97.008,162.432;is=vl");
+        }
         eth[sizeof(ethg)]: <default("EthernetInterface")> like IWiredNic {
             parameters:
                 @display("p=340.656,442.17603,row,60;q=txQueue");
@@ -59,6 +64,9 @@ module LoRaGW
         udp: <udpType> like IUDP if hasUdp {
             parameters:
                 @display("p=314.712,240.264");
+        }
+        packetDuplicator: PacketDuplicator {
+            @display("p=177.09601,275.232");
         }
         networkLayer: <networkLayerType> like INetworkLayer {
             @display("p=340.656,337.272");
@@ -68,10 +76,17 @@ module LoRaGW
                 @display("p=53,250;is=s");
         }
     connections allowunconnected:
-        packetForwarder.lowerLayerOut --> LoRaGWNic.upperLayerIn;
-        LoRaGWNic.upperLayerOut --> packetForwarder.lowerLayerIn;
         packetForwarder.udpOut --> udp.appIn++;
         packetForwarder.udpIn <-- udp.appOut++;
+        LoRaGWNic.upperLayerOut --> packetDuplicator.lowerLayerIn;
+        packetDuplicator.lowerLayerOut --> LoRaGWNic.upperLayerIn;
+		
+		packetForwarder.lowerLayerOut --> packetDuplicator.upperLayerIn++;
+		neighbourTalker.lowerLayerOut --> packetDuplicator.upperLayerIn++;
+		packetForwarder.lowerLayerIn <-- packetDuplicator.upperLayerOut++;
+		neighbourTalker.lowerLayerIn <-- packetDuplicator.upperLayerOut++;
+		
+		
         for i=0..sizeof(ethg)-1 {
             ethg[i] <--> { @display("m=s"); } <--> eth[i].phys;
             eth[i].upperLayerOut --> networkLayer.ifIn++;

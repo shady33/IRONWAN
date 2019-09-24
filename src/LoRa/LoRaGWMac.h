@@ -45,7 +45,8 @@ public:
     void sendPacketBack(LoRaMacFrame *receivedFrame);
     void createFakeLoRaMacFrame();
     virtual DevAddr getAddress();
-
+    virtual ~LoRaGWMac();
+    
 protected:
     DevAddr address;
 
