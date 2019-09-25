@@ -45,7 +45,7 @@ void NeighbourTalker::handleMessage(cMessage *msg)
         EV << "Received message from Lower Layer" << endl;
         delete msg;
     }else if(msg->isSelfMessage()){
-        std::cout << "Self message in GW" << std::endl;
+        EV << "Self message in GW" << endl;
     }   
 }
 

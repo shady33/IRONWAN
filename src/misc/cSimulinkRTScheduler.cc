@@ -45,11 +45,11 @@ cSimulinkRTScheduler::cSimulinkRTScheduler() : cScheduler()
 
 cSimulinkRTScheduler::~cSimulinkRTScheduler()
 {
-    std::cout << "Received messages from Simulink:" << receivedMsgs << std::endl;
-    std::cout << "Scheduled messages at Omnet:" << scheduldMsgs << std::endl;
-    std::cout << "Sent messages to Simulink:" << sentMsgs << std::endl;
+    // std::cout << "Received messages from Simulink:" << receivedMsgs << std::endl;
+    // std::cout << "Scheduled messages at Omnet:" << scheduldMsgs << std::endl;
+    // std::cout << "Sent messages to Simulink:" << sentMsgs << std::endl;
     // // for(int i=0;i<sentMsgs;i++)
-    // //     std::cout << data[i] << " ";
+    // //     // std::cout << data[i] << " ";
     // std::cout << std::endl;
 }
 
@@ -290,7 +290,7 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
             }
             // if(delta%10 == 0){
             //     if(data[delta-1] - data[delta-10] > 1000){
-            //         std::cout << "Delta is:" << (data[delta-1]-data[delta-10]) << std::endl;
+            //         // std::cout << "Delta is:" << (data[delta-1]-data[delta-10]) << std::endl;
             //     }
             // }
             // (data[delta-1] - data[delta-2])
@@ -302,7 +302,7 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
             //     time_delta = simTime();
             //     factor = (SIMTIME_DBL(simTime())-delta_1)/(SIMTIME_DBL(simTime())-data[delta-1]);
             //     doScaling = true;
-            //     std::cout << "Factor changed" << factor << std::endl;
+            //     // std::cout << "Factor changed" << factor << std::endl;
             //     received = true;
             // }
             // else if((SIMTIME_DBL(simTime())-delta_1)/(SIMTIME_DBL(simTime())-data[delta-1]) < 0.9){
@@ -310,7 +310,7 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
             //     time_delta = simTime();
             //     factor = (SIMTIME_DBL(simTime())-delta_1)/(SIMTIME_DBL(simTime())-data[delta-1]);
             //     doScaling = true;
-            //     std::cout << "Factor changed neg:" << factor << std::endl;
+            //     // std::cout << "Factor changed neg:" << factor << std::endl;
             //     received = true;
             // }
             // counter = 0;
@@ -373,7 +373,7 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
                     //     // notificationMsgGW[i]->setArrival(moduleGW[i]->getId(), -1, t );
                     //     // getSimulation()->getFES()->insert(notificationMsgGW[i]);
                     // }else{
-                    //     std::cout << "Dropped" << (simTime() - t) << std::endl;
+                    //     // std::cout << "Dropped" << (simTime() - t) << std::endl;
                     //     (*numBytesPtrGW[i]) -= nBytes;
                     // }
                 }
@@ -430,7 +430,7 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
                     //     getSimulation()->getFES()->insert(msg);
                     //     received = true;
                     // }else{
-                    //     std::cout << "Dropped" << (simTime() - t) << std::endl;
+                    //     // std::cout << "Dropped" << (simTime() - t) << std::endl;
                     //     (*numBytesPtrSensor[i]) -= nBytes;
                     // }
                 }
@@ -496,14 +496,14 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
 //                     // schedule notificationMsg for the interface module
 //                     speedUP = true;
 //                     EV << "cSimulinkScheduler: received " << nBytes << " bytes\n";
-//                     std::cout << atof(bufPtr) << std::endl;
+//                     // std::cout << atof(bufPtr) << std::endl;
 //                     (*numBytesPtrGW[i]) += nBytes;
 //                     timeval curTime;
 //                     gettimeofday(&curTime, nullptr);
 //                     curTime = timeval_substract(curTime, baseTime);
 //                     // simtime_t t = curTime.tv_sec*10 + curTime.tv_usec*1e-6;
 //                     simtime_t t = simTime()+10;
-//                     std::cout << nBytes << atof(bufPtr) << std::endl;
+//                     // std::cout << nBytes << atof(bufPtr) << std::endl;
 //                     // simtime_t t = atof(bufPtr);
 //                     ASSERT(t >= simTime());
 //                     notificationMsgGW[i]->setArrival(moduleGW[i]->getId(), -1, t );
@@ -547,14 +547,14 @@ bool cSimulinkRTScheduler::receiveWithTimeout(long usec)
 //                     // schedule notificationMsg for the interface module
 //                     speedUP = true;
 //                     EV << "cSimulinkScheduler: received " << nBytes << " bytes\n";
-//                     std::cout << atof(bufPtr) << std::endl;
+//                     // std::cout << atof(bufPtr) << std::endl;
 //                     (*numBytesPtr[i]) += nBytes;
 //                     // timeval curTime;
 //                     // gettimeofday(&curTime, nullptr);
 //                     // curTime = timeval_substract(curTime, baseTime);
 //                     // simtime_t t = curTime.tv_sec*10 + curTime.tv_usec*1e-6;
 //                     simtime_t t = simTime()+10;
-//                     std::cout << nBytes << atof(bufPtr) << std::endl;
+//                     // std::cout << nBytes << atof(bufPtr) << std::endl;
 //                     // simtime_t t = atof(bufPtr);
 //                     ASSERT(t >= simTime());
 //                     notificationMsg[i]->setArrival(module[i]->getId(), -1, t );
@@ -595,7 +595,7 @@ int cSimulinkRTScheduler::receiveUntil(const timeval& targetTime)
 
         // Timeout blocked the UI, so jump time
         if(simTime() - t > 0)
-            std::cout << simTime() << " " << t << " " << time_delta << " " << (t-time_delta) << std::endl;
+            // std::cout << simTime() << " " << t << " " << time_delta << " " << (t-time_delta) << std::endl;
         ASSERT(t >= simTime());
         sim->setSimTime(t);
         if (getEnvir()->idle())

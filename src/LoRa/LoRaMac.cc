@@ -363,7 +363,7 @@ void LoRaMac::sendDataFrame(LoRaMacFrame *frameToSend)
     ctrl->setSrc(frameCopy->getTransmitterAddress());
     ctrl->setDest(frameCopy->getReceiverAddress());
     frameCopy->setControlInfo(ctrl);
-    // std::cout << "Frame sent from " << frameCopy->getTransmitterAddress() << " at freq: " << frameCopy->getLoRaCF() << std::endl;
+    // // std::cout << "Frame sent from " << frameCopy->getTransmitterAddress() << " at freq: " << frameCopy->getLoRaCF() << std::endl;
     sendDown(frameCopy);
 }
 

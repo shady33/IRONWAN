@@ -267,7 +267,7 @@ void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
         noOfRetransmits = 0;
         e2edelay.record(simTime()-startTime);
         retransmits.record(noOfRetransmits);
-        std::cout << simTime()-startTime << std::endl;
+        // std::cout << simTime()-startTime << std::endl;
     }else if(packet->getKind() == DATANOSOCKET){
         EV << "Received Downlink not to be sent on socket" << endl;
         // if(retryLimit != 0){
