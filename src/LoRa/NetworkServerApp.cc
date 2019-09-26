@@ -24,7 +24,6 @@ namespace inet {
 
 Define_Module(NetworkServerApp);
 
-
 void NetworkServerApp::initialize(int stage)
 {
     schedulerClass = getSimulation()->getScheduler()->str();
@@ -69,9 +68,7 @@ void NetworkServerApp::handleMessage(cMessage *msg)
         }
         updateKnownNodes(frame);
         processLoraMACPacket(PK(msg));    
-    }
-    if(msg->isSelfMessage())
-    {
+    }else if (msg->isSelfMessage()) {
         processScheduledPacket(msg);
     }
 }
@@ -288,7 +285,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
     // {
     //     sendADRAckRep = true;
     // }
-    // // std::cout << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(3)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(2)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(1)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(0)) << std::endl;
+    // std::cout << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(3)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(2)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(1)) << " " << std::hex << ((pkt->getTransmitterAddress()).getAddressByte(0)) << std::endl;
     for(uint i=0;i<knownNodes.size();i++)
     {
         if((knownNodes[i].srcAddr == pkt->getTransmitterAddress()) && ((pkt->getTransmitterAddress()).getAddressByte(0) == networkServerNumber))

@@ -238,7 +238,7 @@ void AeseLoRaApp::handleMessage(cMessage *msg)
                 //     sendJoinRequest();
                 //     // std::cout << " Value:" << value << std::endl;
                 //     timeOfLastPacket = time;
-                //     // // std::cout << "Time of last packet:" << timeOfLastPacket << std::endl;
+                //     // std::cout << "Time of last packet:" << timeOfLastPacket << std::endl;
                 // }
 
                 numRecvBytes = 0;
@@ -298,12 +298,12 @@ void AeseLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>(msg);
     if(packet->getKind() == DATADOWN){
-        // std::cout << "Data receied from Gateway at node: " << packet->getSampleMeasurement() << std::endl;
+        std::cout << "Data receied from Gateway at node: " << packet->getSampleMeasurement() << std::endl;
         rtScheduler->sendValue(packet->getSampleMeasurement(),this);
     }else if(packet->getKind() == DATANOSOCKET){
-        // std::cout << "Received Downlink not to be sent on socket" << std::endl;
+        std::cout << "Received Downlink not to be sent on socket" << std::endl;
     }else if(packet->getKind() == FEEDBACK){
-        // std::cout << "Feedback recevied at " << simTime() << std::endl;
+        std::cout << "Feedback recevied at " << simTime() << std::endl;
     }else{
         if (simTime() >= getSimulation()->getWarmupPeriod())
             receivedADRCommands++;
@@ -376,7 +376,7 @@ void AeseLoRaApp::sendJoinRequest()
 void AeseLoRaApp::sendMessageToQueue(double value)
 {
     sequenceNumber++;
-    // // std::cout << "Message sent to queue " << std::endl;
+    // std::cout << "Message sent to queue " << std::endl;
     LoRaAppPacket *request = new LoRaAppPacket("UplinkMessage");
     request->setMsgType(UPLINK);
     request->setSampleMeasurement(value);

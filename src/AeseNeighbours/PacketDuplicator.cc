@@ -29,9 +29,6 @@ void PacketDuplicator::initialize(int stage)
         if (gate("upperLayerIn", 0)->size() != numPorts)
             throw cRuntimeError("the sizes of the upperLayerOut[] and upperLayerIn[] gate vectors must be the same");
     }
-    else if (stage == INITSTAGE_LINK_LAYER) {
-        
-    }
 }
 
 void PacketDuplicator::handleMessage(cMessage *msg)
@@ -52,11 +49,11 @@ void PacketDuplicator::broadcastFrame(cMessage *msg)
     delete msg;
 }
 
-bool PacketDuplicator::handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback)
-{
-    Enter_Method_Silent();
-    return true;
-}
+// bool PacketDuplicator::handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback)
+// {
+//     Enter_Method_Silent();
+//     return true;
+// }
 
 void PacketDuplicator::finish()
 {

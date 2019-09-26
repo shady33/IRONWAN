@@ -3,12 +3,9 @@
 
 #include "inet/common/INETDefs.h"
 
-#include "inet/common/lifecycle/ILifecycle.h"
-
-
 namespace inet {
 
-class INET_API PacketDuplicator :public cSimpleModule, public ILifecycle
+class INET_API PacketDuplicator :public cSimpleModule
 {
   public:
     void initialize(int stage);
@@ -16,8 +13,7 @@ class INET_API PacketDuplicator :public cSimpleModule, public ILifecycle
     void broadcastFrame(cMessage *msg);
     void finish();
     int numPorts;
-    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
-
+    // virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
 };
 
 } // namespace inet

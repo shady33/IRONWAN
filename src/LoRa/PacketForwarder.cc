@@ -80,7 +80,7 @@ void PacketForwarder::initialize(int stage)
             numberOfChannels = par("numberOfChannels");
             dataOnSameChannel = par("dataOnSameChannel");
 
-            // // std::cout << noOfNslots << " " << nSlotDuration << " " << noOfMslots << " " << mSlotDuration << std::endl;
+            // std::cout << noOfNslots << " " << nSlotDuration << " " << noOfMslots << " " << mSlotDuration << std::endl;
             if(dataOnSameChannel){
                 frameDuration = (noOfNslots*nSlotDuration) + (noOfMslots*mSlotDuration);
             }else{
@@ -140,7 +140,7 @@ void PacketForwarder::startUDP()
     
     const char *destAddrs = par("destAddresses");
     // std::string destAddrsNew;
-    // // std::cout << *destAddrs << std::endl;
+    // std::cout << *destAddrs << std::endl;
     // if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
     //     std::stringstream ss;
     //     ss << "networkServer[" << gwNSNumber << "]";
@@ -166,12 +166,14 @@ void PacketForwarder::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received LoRaMAC frame" << endl;
-        // // std::cout << "Received LoRaMAC frame in GW" << std::endl;
+        // std::cout << "Received LoRaMAC frame in GW" << std::endl;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
         // std::cout << frame << std::endl;
-        updateAndLogNode(frame);
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
+            updateAndLogNode(frame);
             processLoraMACPacket(PK(msg));
+        }else{
+            delete msg;
         }
         //send(msg, "upperLayerOut");
         //sendPacket();
@@ -265,10 +267,10 @@ void PacketForwarder::processPacketMatlab()
             
             numRecvBytes -= totalPacketSize;
         }else{
-            // // std::cout << "Setting to zero" << std::endl;
+            // std::cout << "Setting to zero" << std::endl;
             numRecvBytes = 0;
         }
-		// // std::cout << "Bytes:" << numRecvBytes << std::endl;
+		// std::cout << "Bytes:" << numRecvBytes << std::endl;
     }
 }
 
@@ -288,9 +290,9 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
 
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)
-    // // std::cout << "Frame recv from " << frame->getTransmitterAddress() << std::endl;
+    // std::cout << "Frame recv from " << frame->getTransmitterAddress() << std::endl;
     if(packettype == UPLINKMINISLOT){
-        // // std::cout << "Frame with minislot " << frame->getMyMiniSlot() << std::endl;
+        // std::cout << "Frame with minislot " << frame->getMyMiniSlot() << std::endl;
         miniSlotInformation[frame->getMyMiniSlot()] = miniSlotInformation[frame->getMyMiniSlot()] + 1;
         if(!dataOnSameChannel){
             requestedSlots[frame->getMyMiniSlot()] = frame->getNumberOfFrames();
@@ -302,7 +304,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
         // } 
     }
     else if(packettype == UPLINKDATASLOT){
-        // // std::cout << "Received frame with data " << std::endl;
+        // std::cout << "Received frame with data " << std::endl;
         LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>((frame)->decapsulate());
         if(dataOnSameChannel){
             if(frame->getDataInThisFrame()) {
@@ -312,7 +314,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
             else DTQ = DTQ - 1;
         }else{
             int channelNumber = ((frame->getLoRaCF() - inet::units::values::Hz(867100000))/inet::units::values::Hz(200000)).get();
-            // // std::cout << "Frame with data " << frame->getLoRaCF() << " " << channelNumber << std::endl;
+            // std::cout << "Frame with data " << frame->getLoRaCF() << " " << channelNumber << std::endl;
             dataQueues[channelNumber] = dataQueues[channelNumber] - frame->getNumberOfFrames();
             dataReceived.record(simTime());
         }
@@ -329,9 +331,9 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
             std::string line;
             while (std::getline(ss,line,'-'))
                 array.push_back(std::strtol(line.c_str(), 0, 16));
-            // // std::cout << array[3] << " " << packet->getSampleMeasurement() << std::endl;
+            // std::cout << array[3] << " " << packet->getSampleMeasurement() << std::endl;
             double d = -array[3] + (packet->getSampleMeasurement()/100) - 0.1;
-            // // std::cout << array[3] << " " << packet->getSampleMeasurement() << " " << d << std::endl;
+            // std::cout << array[3] << " " << packet->getSampleMeasurement() << " " << d << std::endl;
             if(d<-1)
                 rtScheduler->sendValue(d,this);
         }
@@ -428,7 +430,7 @@ void PacketForwarder::scheduleDownlink(int val,cPacket *pk)
 
 void PacketForwarder::sendPacket(int val)
 {   
-    // // std::cout << "Sending message from GW to: " << frameCopy[val]->getReceiverAddress() << " at time " << simTime() << std::endl;
+    // std::cout << "Sending message from GW to: " << frameCopy[val]->getReceiverAddress() << " at time " << simTime() << std::endl;
 
     cnt &= ~(1 << val);
     LoRaMacFrame *response = frameCopy[val]->dup();
@@ -439,7 +441,7 @@ void PacketForwarder::sendPacket(int val)
 void PacketForwarder::receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details)
 {
     if(!strcmp(getSignalName(signalID),"LoRaMiniSlotCollision")){
-        // // std::cout << "Receivd collision at minislot " << value << std::endl;
+        // std::cout << "Receivd collision at minislot " << value << std::endl;
         miniSlotInformation[value] = miniSlotInformation[value] + 1;
     }else if(!strcmp(getSignalName(signalID),"LoRaDataSlotCollision")){
         dataSlotInformation[value] = dataSlotInformation[value] + 1;
@@ -473,7 +475,7 @@ void PacketForwarder::sendActuationMessage(){
         frameToSend->setLoRaBW(loraBW);
         frameToSend->setLoRaCR(1);
 
-        // // std::cout << "Sending Actuation message " << std::endl;
+        // std::cout << "Sending Actuation message " << std::endl;
         frameToSend->setMsgType(ACTUATION);
         
         frameCopy[1] = frameToSend;
@@ -497,7 +499,7 @@ void PacketForwarder::sendActuationMessageNow(LoRaAppPacket* appPacket)
     frameToSend->setLoRaBW(loraBW);
     frameToSend->setLoRaCR(1);
 
-    // // std::cout << "Sending Actuation message " << std::endl;
+    // std::cout << "Sending Actuation message " << std::endl;
     frameToSend->setMsgType(ACTUATION);
     
     frameCopy[1] = frameToSend;
@@ -575,7 +577,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
             dataExpectedfromMiniSlot = false;
             
             for(int i = 0;i < noOfMslots; i++){
-                // // std::cout << slotInformation[i];
+                // std::cout << slotInformation[i];
                 if(miniSlotInformation[i] == 0){
                     frameToSend->setM(i,EMPTY);
                 }else if(miniSlotInformation[i] == 1){
@@ -590,10 +592,10 @@ void PacketForwarder::sendFeedbackMessage(bool first){
             }
             frameToSend->setDTQ(DTQ);
             frameToSend->setCRQ(CRQ);
-            // // std::cout << "Sending frame with " << DTQ << CRQ << std::endl;
+            // std::cout << "Sending frame with " << DTQ << CRQ << std::endl;
         }else{
             for(int i = 0;i < noOfMslots; i++){
-                // // std::cout << slotInformation[i];
+                // std::cout << slotInformation[i];
                 if(miniSlotInformation[i] == 0){
                     frameToSend->setM(i,EMPTY);
                     totalMiniSlots = totalMiniSlots + 1;
@@ -610,7 +612,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
                     frameToSend->setPosition(i,lowestValue);
                     frameToSend->setChannelNumber(i,lowestIndex);
                     dataQueues[lowestIndex] = dataQueues[lowestIndex] + requestedSlots[i];
-                    // // std::cout << "Node to go to:" << lowestIndex << " " << lowestValue << std::endl;
+                    // std::cout << "Node to go to:" << lowestIndex << " " << lowestValue << std::endl;
                 }else if(miniSlotInformation[i] > 1){
                     // This may not be happening because droppedpacket is not sent upthe stack yet
                     frameToSend->setM(i,COLLISION);
@@ -619,7 +621,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
                 miniSlotInformation[i] = 0;
             }
             frameToSend->setCRQ(CRQ);
-            // // std::cout << "Sending frame with " << dataQueues[0] << " " << dataQueues[1] << " " << dataQueues[2] << std::endl;
+            // std::cout << "Sending frame with " << dataQueues[0] << " " << dataQueues[1] << " " << dataQueues[2] << std::endl;
         }
         frameToSend->setMsgType(FEEDBACK);
         CRQVector.record(CRQ); 

@@ -1,4 +1,4 @@
 #!/bin/bash
-make MODE=debug
+make MODE=release
 cd simulations
-opp_runall -j2 -b1 ../flora_dbg -u Cmdenv -n ../src:../simulations:../../inet/examples:../../inet/src:../../inet/tutorials -l ../../inet/src/INET loraMultipleGateways.ini -c LoRaWAN
+../flora -u Qtenv -n ../src:../simulations:../../inet/examples:../../inet/src:../../inet/tutorials -l ../../inet/src/INET loraMultipleGateways.ini -c AESENeighbours

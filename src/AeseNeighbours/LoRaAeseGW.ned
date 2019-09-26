@@ -37,7 +37,6 @@ module LoRaAeseGW
         int numUdpApps = default(0);
         bool hasUdp = true;
         string udpType = default(firstAvailableOrEmpty("UDP"));
-        bool AeseGWEnabled = default(false);
         @display("bgb=611,560;i=device/antennatower");
     gates:
         inout ethg[] @labels(EtherFrame-conn);

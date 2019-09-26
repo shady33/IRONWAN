@@ -116,13 +116,15 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
     }
 }
 
+// LAKSH: Filtering of packets has been stopped
 void LoRaGWMac::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
-    if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
-        sendUp(frame);
-    else
-        delete frame;
+    sendUp(frame);
+    // if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
+        // sendUp(frame);
+    // else
+        // delete frame;
 }
 
 void LoRaGWMac::sendPacketBack(LoRaMacFrame *receivedFrame)

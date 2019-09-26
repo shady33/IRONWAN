@@ -35,6 +35,7 @@ enum MacPacketType
     UPLINKMINISLOT = 2;
     UPLINKDATASLOT = 3;
     ACTUATION = 4;
+    GW_PING_MESSAGE = 5;
 }
 
 enum CollisionInfo

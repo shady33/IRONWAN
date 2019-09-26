@@ -36,7 +36,9 @@ simulations/**/.tkenvrc
 simulations/**/valgrind.out
 simulations/**/log.txt
 
+flora
 flora_dbg
 /.computed/
 simulations/*.rtt
 .settings/language.settings.xml
+simulations/.qtenvrc

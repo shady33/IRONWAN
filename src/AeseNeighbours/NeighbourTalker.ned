@@ -18,6 +18,7 @@ package loranetwork.AeseNeighbours;
 simple NeighbourTalker
 {
     @class(inet::NeighbourTalker);
+    bool AeseGWEnabled = default(false);
     gates:
 		input lowerLayerIn @labels(NeighbourTalker/up);
         output lowerLayerOut @labels(NeighbourTalker/down);
