@@ -37,6 +37,6 @@ simple SimpleLoRaApp
     	bool evaluateADRinNode = default(false);
         int retryLimit = default(0);
     gates:
-        output appOut @labels(LoRaAppPacket/down);
-        input appIn @labels(LoRaAppPacket/up);
+        output appOut @labels(AeseAppPacket/down);
+        input appIn @labels(AeseAppPacket/up);
 }

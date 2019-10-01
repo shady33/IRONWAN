@@ -199,7 +199,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
             sendActuationMessage();
         }else if(msg == sendActuationNoSimulink){
             if(currentCntActuators != 0){
-                LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
+                AeseAppPacket *request = new AeseAppPacket("ActuationFrame");
                 request->setMsgType(ACTUATION);
                 for(int la=0;la<currentCntActuators;la++){
                     request->setActuatorNumber(la,actuatorNumbers[la]);
@@ -258,7 +258,7 @@ void PacketForwarder::processPacketMatlab()
             if(actuationQueue.front() != nullptr){
                 delete actuationQueue.pop();
             }
-            LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
+            AeseAppPacket *request = new AeseAppPacket("ActuationFrame");
             request->setMsgType(ACTUATION);
             for(int la=0;la<numberOfAeseActuatorNodes;la++){
                 request->setActuationSignal(la,values[la]);
@@ -305,7 +305,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     }
     else if(packettype == UPLINKDATASLOT){
         // std::cout << "Received frame with data " << std::endl;
-        LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>((frame)->decapsulate());
+        AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
         if(dataOnSameChannel){
             if(frame->getDataInThisFrame()) {
                 dataExpectedfromMiniSlot = true;
@@ -345,9 +345,9 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
             delete frame->removeControlInfo();
         
         if(enableActuation){
-            LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>((frame)->decapsulate());
+            AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
             if(sendImmediateActuation){
-                LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
+                AeseAppPacket *request = new AeseAppPacket("ActuationFrame");
                 request->setMsgType(ACTUATION);
                 request->setActuatorNumber(0,packet->getSensorNumber());
                 request->setPacketGeneratedTime(0,packet->getPacketGeneratedTime(0));
@@ -403,9 +403,9 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
 void PacketForwarder::scheduleDownlink(int val,cPacket *pk)
 {   
     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(pk);
-    LoRaAppPacket *request = check_and_cast<LoRaAppPacket *>(frame->decapsulate());
+    AeseAppPacket *request = check_and_cast<AeseAppPacket *>(frame->decapsulate());
     
-    LoRaAppPacket *downlink = new LoRaAppPacket("DownlinkFrame");
+    AeseAppPacket *downlink = new AeseAppPacket("DownlinkFrame");
     if(schedulerClass == "cSimulinkRTScheduler"){
         downlink->setKind(DATADOWN);
     }else{
@@ -462,7 +462,7 @@ void PacketForwarder::sendActuationMessage(){
     units::values::Hz loraCF=inet::units::values::Hz(869587500);
     units::values::Hz loraBW=inet::units::values::Hz(125000);
 
-    // LoRaAppPacket *request = new LoRaAppPacket("ActuationFrame");
+    // AeseAppPacket *request = new AeseAppPacket("ActuationFrame");
     // request->setMsgType(ACTUATION);
     if(actuationQueue.front() != nullptr){
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ActuationPacket");
@@ -484,7 +484,7 @@ void PacketForwarder::sendActuationMessage(){
     scheduleAt(simTime() + actuationPeriod,sendActuation);
 }
 
-void PacketForwarder::sendActuationMessageNow(LoRaAppPacket* appPacket)
+void PacketForwarder::sendActuationMessageNow(AeseAppPacket* appPacket)
 {
     units::values::Hz loraCF=inet::units::values::Hz(869587500);
     units::values::Hz loraBW=inet::units::values::Hz(125000);
@@ -517,7 +517,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
     units::values::Hz loraBW=inet::units::values::Hz(125000);
 
     if(first){
-        LoRaAppPacket *request = new LoRaAppPacket("StartFrame");
+        AeseAppPacket *request = new AeseAppPacket("StartFrame");
         request->setMsgType(FEEDBACK);
 
         LoRaMacFrame *frameToSend = new LoRaMacFrame("StartPacket");
@@ -539,7 +539,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
         scheduleAt(simTime() + timeToStartSignal, sendDownlink[0]);
         scheduleAt(simTime() + timeToStartSignal + 0.08 + frameDuration,sendFeedback);
     }else{
-        LoRaAppPacket *request = new LoRaAppPacket("FeedbackFrame");
+        AeseAppPacket *request = new AeseAppPacket("FeedbackFrame");
         request->setMsgType(FEEDBACK);
 
         LoRaMacFrame *frameToSend = new LoRaMacFrame("FeedbackPacket");

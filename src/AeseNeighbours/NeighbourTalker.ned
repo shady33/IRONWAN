@@ -19,6 +19,7 @@ simple NeighbourTalker
 {
     @class(inet::NeighbourTalker);
     bool AeseGWEnabled = default(false);
+    simTime_t periodicPingInterval = default(100);
     gates:
 		input lowerLayerIn @labels(NeighbourTalker/up);
         output lowerLayerOut @labels(NeighbourTalker/down);

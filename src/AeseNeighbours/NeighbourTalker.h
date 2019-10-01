@@ -26,7 +26,7 @@
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "../misc/cSimulinkRTScheduler.h"
-#include "../LoRaApp/LoRaAppPacket_m.h"
+#include "../LoRaApp/AeseAppPacket_m.h"
 #include "SupportedProtocols.h"
 
 namespace inet {
@@ -72,6 +72,9 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
 
   private:
     bool AeseGWEnabled;
+    simtime_t periodicPingInterval;
+    cMessage *transmitPingMessage;
+    SupportedProtocols currentProtocol;
 
   protected:
     virtual void initialize(int stage) override;
@@ -79,7 +82,8 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     virtual void finish() override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     void handleLoRaFrame(cPacket* pkt);    
-
+    void transmitPing();
+    void transmitLoRaMessage();
   public:
     virtual ~NeighbourTalker();
     void handleLowerLayer(cPacket* pkt);

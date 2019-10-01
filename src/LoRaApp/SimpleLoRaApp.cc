@@ -261,7 +261,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 
 void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
-    LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>(msg);
+    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(packet->getKind() == DATADOWN){
         cancelEvent(retryMeasurements);
         noOfRetransmits = 0;
@@ -322,7 +322,7 @@ bool SimpleLoRaApp::handleOperationStage(LifecycleOperation *operation, int stag
 
 void SimpleLoRaApp::sendJoinRequest()
 {
-    LoRaAppPacket *request = new LoRaAppPacket("DataFrame");
+    AeseAppPacket *request = new AeseAppPacket("DataFrame");
     request->setMsgType(JOIN_REQUEST);
     lastSentMeasurement = rand();
     request->setSampleMeasurement(dataToSend);

@@ -27,14 +27,19 @@ NeighbourTalker::~NeighbourTalker()
         delete cur->second.frame;
         ReceivedPacketsList->erase(cur);
     }
+    cancelAndDelete(transmitPingMessage);
 }
 
 void NeighbourTalker::initialize(int stage)
 {
     if (stage == 0) {
         AeseGWEnabled = par("AeseGWEnabled");
+        periodicPingInterval = par("periodicPingInterval");
+        transmitPingMessage = new cMessage("Time To Transmit Ping Message");
+        currentProtocol = LORA;
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
         ReceivedPacketsList = new ReceivedPacketsMap();
+        scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
     }
 }
 
@@ -48,14 +53,31 @@ void NeighbourTalker::handleMessage(cMessage *msg)
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
         handleLowerLayer(PK(msg));
-    }else if(msg->isSelfMessage()){
-        EV << "Self message in Neighbour Talker" << endl;
+    }else if(msg == transmitPingMessage){
+        EV << "Time to transmit a ping message" << endl;
+        transmitPing();
+        scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
     }   
 }
 
 void NeighbourTalker::finish()
 {
 
+}
+
+void NeighbourTalker::transmitPing()
+{
+    if(currentProtocol == LORA)
+    {
+        transmitLoRaMessage();
+    }else{
+        throw cRuntimeError("Unhandled protocol");
+    }
+}
+
+void NeighbourTalker::transmitLoRaMessage()
+{
+    AeseAppPacket* app = new AeseAppPacket("PingFrame");
 }
 
 void NeighbourTalker::handleLowerLayer(cPacket* pkt)

@@ -40,7 +40,7 @@ class LoRaOptions {
     bool ADRACKReq = false;
 }
 
-packet LoRaAppPacket {
+packet AeseAppPacket {
     int msgType @enum(AppPacketType);
     double sampleMeasurement;
     double actuationSignal[250];

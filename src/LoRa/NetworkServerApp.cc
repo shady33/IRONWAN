@@ -252,9 +252,9 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
 
 void NetworkServerApp::sendBackDownlink(LoRaMacFrame* frame, L3Address pickedGateway)
 {
-//    LoRaAppPacket *request = check_and_cast<LoRaAppPacket *>(frame->decapsulate());
+//    AeseAppPacket *request = check_and_cast<AeseAppPacket *>(frame->decapsulate());
     
-    LoRaAppPacket *downlink = new LoRaAppPacket("DownlinkFrame");
+    AeseAppPacket *downlink = new AeseAppPacket("DownlinkFrame");
     if(schedulerClass == "cSimulinkRTScheduler"){
         downlink->setKind(DATADOWN);
     }else{
@@ -280,7 +280,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
     double SNRm; //needed for ADR
     int numberOfPickedNodes;
 
-    // LoRaAppPacket *rcvAppPacket = check_and_cast<LoRaAppPacket*>(pkt->decapsulate());
+    // AeseAppPacket *rcvAppPacket = check_and_cast<AeseAppPacket*>(pkt->decapsulate());
     // if(rcvAppPacket->getOptions().getADRACKReq())
     // {
     //     sendADRAckRep = true;
@@ -330,7 +330,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
 
     if(sendADR || sendADRAckRep)
     {
-        LoRaAppPacket *mgmtPacket = new LoRaAppPacket("ADRcommand");
+        AeseAppPacket *mgmtPacket = new AeseAppPacket("ADRcommand");
         mgmtPacket->setMsgType(TXCONFIG);
 
         if(evaluateADRinServer && sendADR)
@@ -394,7 +394,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         sentMsgs++;
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }else if(pkt->getConfirmedMessage()){
-        LoRaAppPacket *downlink = new LoRaAppPacket("ACKCommand");
+        AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
         downlink->setMsgType(JOIN_REPLY);
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ACKPacket");
         frameToSend->encapsulate(downlink);

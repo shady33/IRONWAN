@@ -38,6 +38,6 @@ simple AeseLoRaApp
         string FileForTimes = default("");
         bool multiplePackets = default(false);
     gates:
-        output appOut @labels(LoRaAppPacket/down);
-        input appIn @labels(LoRaAppPacket/up);
+        output appOut @labels(AeseAppPacket/down);
+        input appIn @labels(AeseAppPacket/up);
 }

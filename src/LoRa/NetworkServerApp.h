@@ -27,7 +27,7 @@
 #include "LoRaMacFrame_m.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
-#include "LoRaAppPacket_m.h"
+#include "AeseAppPacket_m.h"
 #include <list>
 
 namespace inet {

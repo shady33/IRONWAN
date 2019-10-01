@@ -296,7 +296,7 @@ void AeseLoRaApp::handleMessage(cMessage *msg)
 
 void AeseLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
-    LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>(msg);
+    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(packet->getKind() == DATADOWN){
         std::cout << "Data receied from Gateway at node: " << packet->getSampleMeasurement() << std::endl;
         rtScheduler->sendValue(packet->getSampleMeasurement(),this);
@@ -335,7 +335,7 @@ bool AeseLoRaApp::handleOperationStage(LifecycleOperation *operation, int stage,
 
 void AeseLoRaApp::sendJoinRequest()
 {
-    LoRaAppPacket *request = new LoRaAppPacket("DataFrame");
+    AeseAppPacket *request = new AeseAppPacket("DataFrame");
     request->setKind(DATA);
     lastSentMeasurement = rand();
     request->setSampleMeasurement(dataToSend);
@@ -377,7 +377,7 @@ void AeseLoRaApp::sendMessageToQueue(double value)
 {
     sequenceNumber++;
     // std::cout << "Message sent to queue " << std::endl;
-    LoRaAppPacket *request = new LoRaAppPacket("UplinkMessage");
+    AeseAppPacket *request = new AeseAppPacket("UplinkMessage");
     request->setMsgType(UPLINK);
     request->setSampleMeasurement(value);
     request->setPacketGeneratedTime(0,simTime());

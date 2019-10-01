@@ -26,7 +26,7 @@
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "../misc/cSimulinkRTScheduler.h"
-#include "../LoRaApp/LoRaAppPacket_m.h"
+#include "../LoRaApp/AeseAppPacket_m.h"
 
 namespace inet {
 
@@ -123,7 +123,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void scheduleDownlink(int val,cPacket *pk);
     void sendFeedbackMessage(bool first);
     void sendActuationMessage();
-    void sendActuationMessageNow(LoRaAppPacket *appPacket);
+    void sendActuationMessageNow(AeseAppPacket *appPacket);
     void updateAndLogNode(LoRaMacFrame* pkt);
 
   public:

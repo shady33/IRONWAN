@@ -78,14 +78,14 @@ OBJS = \
     $O/src/misc/cSimulinkRTScheduler.o \
     $O/src/LoRa/LoRaMacControlInfo_m.o \
     $O/src/LoRa/LoRaMacFrame_m.o \
-    $O/src/LoRaApp/LoRaAppPacket_m.o \
+    $O/src/LoRaApp/AeseAppPacket_m.o \
     $O/src/LoRaPhy/LoRaRadioControlInfo_m.o
 
 # Message files
 MSGFILES = \
     src/LoRa/LoRaMacControlInfo.msg \
     src/LoRa/LoRaMacFrame.msg \
-    src/LoRaApp/LoRaAppPacket.msg \
+    src/LoRaApp/AeseAppPacket.msg \
     src/LoRaPhy/LoRaRadioControlInfo.msg
 
 # SM files

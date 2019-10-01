@@ -116,7 +116,7 @@ void AeseLoRaActuatorApp::handleMessage(cMessage *msg)
 
 void AeseLoRaActuatorApp::handleMessageFromLowerLayer(cMessage *msg)
 {
-    LoRaAppPacket *packet = check_and_cast<LoRaAppPacket *>(msg);
+    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(packet->getMsgType() == ACTUATION){
         // std::cout << "Data receied from Gateway at actuator: " << packet->getActuationSignal(actuatorNumber) << std::endl;
         // if(actuatorNumber > 6 && packet->getSystemNumber() == 3){

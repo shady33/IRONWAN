@@ -29,6 +29,6 @@ simple AeseLoRaActuatorApp
         bool initialUseHeader = default(true);
         @class(inet::AeseLoRaActuatorApp);
     gates:
-        output appOut @labels(LoRaAppPacket/down);
-        input appIn @labels(LoRaAppPacket/up);
+        output appOut @labels(AeseAppPacket/down);
+        input appIn @labels(AeseAppPacket/up);
 }

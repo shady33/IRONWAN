@@ -22,7 +22,7 @@
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/lifecycle/LifecycleOperation.h"
 
-#include "LoRaAppPacket_m.h"
+#include "AeseAppPacket_m.h"
 #include "../LoRa/LoRaMacControlInfo_m.h"
 #include "../misc/cSimulinkRTScheduler.h"
 #include "../LoRa/LoRaMac.h"
