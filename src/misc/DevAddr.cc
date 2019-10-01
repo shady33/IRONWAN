@@ -165,7 +165,6 @@ DevAddr DevAddr::generateAutoAddressForNS(unsigned int ns)
     return addr;
 }
 
-
 int DevAddr::generateActuatorNumber()
 {
     DevAddr::actuatorNumberCtr = DevAddr::actuatorNumberCtr + 1;

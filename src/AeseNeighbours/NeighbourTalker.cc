@@ -49,7 +49,7 @@ void NeighbourTalker::handleMessage(cMessage *msg)
         EV << "Received message from Lower Layer" << endl;
         handleLowerLayer(PK(msg));
     }else if(msg->isSelfMessage()){
-        EV << "Self message in GW" << endl;
+        EV << "Self message in Neighbour Talker" << endl;
     }   
 }
 

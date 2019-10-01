@@ -30,6 +30,7 @@ using namespace physicallayer;
 
 class LoRaGWMac: public MACProtocolBase {
 public:
+    double usedTimes[4];
     bool waitingForDC;
     cMessage *dutyCycleTimer;
     virtual void initialize(int stage) override;

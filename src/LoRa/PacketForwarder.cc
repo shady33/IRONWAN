@@ -178,16 +178,16 @@ void PacketForwarder::handleMessage(cMessage *msg)
         //send(msg, "upperLayerOut");
         //sendPacket();
     } else if (msg->arrivedOn("udpIn")) {
-        // FIXME : debug for now to see if LoRaMAC frame received correctly from network server
+        // LAKSH: No duty cycling check done here
         EV << "Received UDP packet" << endl;
-        if(simTime()-timeOfLastPacket > 0.5){
+        // if(simTime()-timeOfLastPacket > 0.5){
             sentMsgs++;
-            timeOfLastPacket = simTime();
+            // timeOfLastPacket = simTime();
             LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
             send(frame, "lowerLayerOut");
-        }else{
-            delete msg;
-        }
+        // }else{
+            // delete msg;
+        // }
     }else if(msg->isSelfMessage()){
         std::string s(msg->getName());
         if(s.compare("rtEvent") == 0){

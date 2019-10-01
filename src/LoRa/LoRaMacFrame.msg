@@ -48,7 +48,8 @@ enum CollisionInfo
 packet LoRaMacFrame {
     DevAddr transmitterAddress;
     DevAddr receiverAddress;
-    
+    bool isNeighbourTalkerMessage;
+     
     int sequenceNumber;
     double LoRaTP;
     inet::units::values::Hz LoRaCF;

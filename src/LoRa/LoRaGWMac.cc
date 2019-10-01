@@ -16,7 +16,7 @@
 #include "LoRaGWMac.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/physicallayer/contract/packetlevel/IRadio.h"
-
+#include "../AeseNeighbours/timeOnAir.h"
 
 namespace inet {
 
@@ -59,6 +59,11 @@ void LoRaGWMac::finish()
 {
     recordScalar("GW_forwardedDown", GW_forwardedDown);
     recordScalar("GW_droppedDC", GW_droppedDC);
+
+    recordScalar("Channel 0 used time", usedTimes[0]);
+    recordScalar("Channel 1 used time", usedTimes[1]);
+    recordScalar("Channel 2 used time", usedTimes[2]);
+    recordScalar("Channel 3 used time", usedTimes[3]);       
 }
 
 
@@ -98,16 +103,21 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         ctrl->setDest(frame->getReceiverAddress());
         frame->setControlInfo(ctrl);
         sendDown(frame);
-        // waitingForDC = true;
-        // double delta;
+        waitingForDC = true;
+        double delta;
+        int PayloadLength = frame->getPayloadLength();
+        if(PayloadLength == 0)
+            PayloadLength = 20;
+        delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
         // if(frame->getLoRaSF() == 7) delta = 0.61696;
         // if(frame->getLoRaSF() == 8) delta = 1.23392;
         // if(frame->getLoRaSF() == 9) delta = 2.14016;
         // if(frame->getLoRaSF() == 10) delta = 4.28032;
         // if(frame->getLoRaSF() == 11) delta = 7.24992;
         // if(frame->getLoRaSF() == 12) delta = 14.49984;
-        // scheduleAt(simTime() + delta, dutyCycleTimer);
+        scheduleAt(simTime() + delta, dutyCycleTimer);
         GW_forwardedDown++;
+        usedTimes[3] = usedTimes[3] + delta;
     }
     else
     {
@@ -120,6 +130,14 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
 void LoRaGWMac::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
+    if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
+        int PayloadLength = frame->getPayloadLength();
+        double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+        int channelNumber = ((frame->getLoRaCF() - inet::units::values::Hz(868100000))/inet::units::values::Hz(200000)).get();
+        usedTimes[channelNumber] = usedTimes[channelNumber] + delta;
+    }
+
+
     sendUp(frame);
     // if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
         // sendUp(frame);
