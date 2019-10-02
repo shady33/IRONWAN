@@ -38,8 +38,10 @@ void NeighbourTalker::initialize(int stage)
         transmitPingMessage = new cMessage("Time To Transmit Ping Message");
         currentProtocol = LORA;
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
-        ReceivedPacketsList = new ReceivedPacketsMap();
-        scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
+        if(AeseGWEnabled){
+            ReceivedPacketsList = new ReceivedPacketsMap();
+            scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
+        }
     }
 }
 
