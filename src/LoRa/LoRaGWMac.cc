@@ -115,7 +115,7 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         // if(frame->getLoRaSF() == 10) delta = 4.28032;
         // if(frame->getLoRaSF() == 11) delta = 7.24992;
         // if(frame->getLoRaSF() == 12) delta = 14.49984;
-        scheduleAt(simTime() + delta, dutyCycleTimer);
+        scheduleAt(simTime() + (delta*10), dutyCycleTimer);
         GW_forwardedDown++;
         usedTimes[3] = usedTimes[3] + delta;
     }

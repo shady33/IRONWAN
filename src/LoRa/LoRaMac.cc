@@ -168,6 +168,7 @@ void LoRaMac::handleUpperPacket(cPacket *msg)
         {
             // error(fsm.getStateName());
             // error("Wrong, it should not happen");
+            delete msg;
         }else{
     LoRaMacControlInfo *cInfo = check_and_cast<LoRaMacControlInfo *>(msg->getControlInfo());
     LoRaMacFrame *frame = encapsulate(msg);
