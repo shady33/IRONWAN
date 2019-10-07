@@ -25,6 +25,8 @@
 #include "AeseAppPacket_m.h"
 #include "../LoRa/LoRaMacControlInfo_m.h"
 #include "../misc/cSimulinkRTScheduler.h"
+#include "inet/mobility/single/LinearMobility.h"
+#include "../AeseNeighbours/timeOnAir.h"
 
 using namespace omnetpp;
 
@@ -84,8 +86,8 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         //variables to control ADR
         bool evaluateADRinNode;
         int ADR_ACK_CNT = 0;
-        int ADR_ACK_LIMIT = 64; //64;
-        int ADR_ACK_DELAY = 32; //32;
+        int ADR_ACK_LIMIT = 10; //64;
+        int ADR_ACK_DELAY = 1; //32;
         bool sendNextPacketWithADRACKReq = false;
         void increaseSFIfPossible();
 	bool success;

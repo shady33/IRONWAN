@@ -15,8 +15,6 @@
 
 #include <SimpleLoRaApp.h>
 //#include "inet/mobility/static/StationaryMobility.h"
-#include "inet/mobility/single/LinearMobility.h"
-#include "../misc/cSimulinkRTScheduler.h"
 
 namespace inet {
 
@@ -236,13 +234,13 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             //     scheduleAt(simTime() + uniform(5,7),retryMeasurements);
             // }
             // Schedule Next send measurements 
-            double time;
-            if(loRaSF == 7) time = transmissionTimeTable[0];
-            if(loRaSF == 8) time = transmissionTimeTable[1];
-            if(loRaSF == 9) time = transmissionTimeTable[2];
-            if(loRaSF == 10) time = transmissionTimeTable[3];
-            if(loRaSF == 11) time = transmissionTimeTable[4];
-            if(loRaSF == 12) time = transmissionTimeTable[5];
+            double time = timeOnAir(loRaSF, loRaBW, 40, 1);
+            // if(loRaSF == 7) time = transmissionTimeTable[0];
+            // if(loRaSF == 8) time = transmissionTimeTable[1];
+            // if(loRaSF == 9) time = transmissionTimeTable[2];
+            // if(loRaSF == 10) time = transmissionTimeTable[3];
+            // if(loRaSF == 11) time = transmissionTimeTable[4];
+            // if(loRaSF == 12) time = transmissionTimeTable[5];
             do {
                 timeToNextPacket = par("timeToNextPacket");
             } while(timeToNextPacket <= time);
@@ -262,19 +260,25 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
-    if(packet->getKind() == DATADOWN){
+    if(retryLimit > 1){
         cancelEvent(retryMeasurements);
-        noOfRetransmits = 0;
         e2edelay.record(simTime()-startTime);
         retransmits.record(noOfRetransmits);
+        noOfRetransmits = 0;
+    }
+    if(packet->getKind() == DATADOWN){
+        // cancelEvent(retryMeasurements);
+        // noOfRetransmits = 0;
+        // e2edelay.record(simTime()-startTime);
+        // retransmits.record(noOfRetransmits);
         // std::cout << simTime()-startTime << std::endl;
     }else if(packet->getKind() == DATANOSOCKET){
         EV << "Received Downlink not to be sent on socket" << endl;
         // if(retryLimit != 0){
-        cancelEvent(retryMeasurements);
-        retransmits.record(noOfRetransmits);
-        noOfRetransmits = 0;
-        e2edelay.record(simTime()-startTime);
+        // cancelEvent(retryMeasurements);
+        // retransmits.record(noOfRetransmits);
+        // noOfRetransmits = 0;
+        // e2edelay.record(simTime()-startTime);
             // double time;
             // if(loRaSF == 7) time = transmissionTimeTable[0];
             // if(loRaSF == 8) time = transmissionTimeTable[1];

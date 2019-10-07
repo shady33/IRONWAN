@@ -170,7 +170,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
         // std::cout << frame << std::endl;
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
-            updateAndLogNode(frame);
+            // updateAndLogNode(frame);
             processLoraMACPacket(PK(msg));
         }else{
             delete msg;

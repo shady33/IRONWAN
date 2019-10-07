@@ -210,7 +210,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
-        scheduleAt(simTime() + 1.9, rcvPkt.endOfWaiting); //1.2 // 1.8
+        scheduleAt(simTime() + 1.8, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
 }
@@ -401,7 +401,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setReceiverAddress(pkt->getTransmitterAddress());
         //FIXME: What value to set for LoRa TP
         //frameToSend->setLoRaTP(pkt->getLoRaTP());
-        frameToSend->setLoRaTP(50);
+        frameToSend->setLoRaTP(14);
         // frameToSend->setLoRaCF(pkt->getLoRaCF());
         frameToSend->setLoRaCF(inet::units::values::Hz(869460500));
         // frameToSend->setLoRaSF(pkt->getLoRaSF());

@@ -1,4 +1,4 @@
 #!/bin/bash
 make MODE=release
 cd simulations
-../flora -u Qtenv loraMultipleGateways.ini -c AESENeighbours
+opp_runall -j1 -b1 ../flora -u Cmdenv loraMultipleGateways.ini -c AESENeighbours

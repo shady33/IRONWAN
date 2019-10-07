@@ -20,9 +20,9 @@ def readAndPrint(filename):
     'vecvalue': parse_ndarray
     })
 
-    attributes = ['nodes','load']
-    scalarsToRead = ['numSent','totalEnergyConsumed','LoRa_GWPacketReceived:count','LoRa_GW_DER']
-    vectorsToRead = ['concurrentReceptions']
+    attributes = ['nodes','load','gatewaysPerNS']
+    scalarsToRead = ['numSent','totalEnergyConsumed','LoRa_GWPacketReceived:count','LoRa_GW_DER','sentPackets','GW_droppedDC']
+    vectorsToRead = ['NumberOfRetransmissions']
 
     header = []
     tabledCreated = False
@@ -68,6 +68,5 @@ def readAndPrint(filename):
 
 if __name__ == '__main__':
     filesToParse = sys.argv[1:]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=min())
     for i in range(1,len(sys.argv)):
         readAndPrint(sys.argv[i])

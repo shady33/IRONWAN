@@ -38,8 +38,8 @@ void NeighbourTalker::initialize(int stage)
         transmitPingMessage = new cMessage("Time To Transmit Ping Message");
         currentProtocol = LORA;
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
+        ReceivedPacketsList = new ReceivedPacketsMap();
         if(AeseGWEnabled){
-            ReceivedPacketsList = new ReceivedPacketsMap();
             scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
         }
     }
@@ -69,8 +69,7 @@ void NeighbourTalker::finish()
 
 void NeighbourTalker::transmitPing()
 {
-    if(currentProtocol == LORA)
-    {
+    if(currentProtocol == LORA) {
         transmitLoRaMessage();
     }else{
         throw cRuntimeError("Unhandled protocol");
@@ -79,7 +78,9 @@ void NeighbourTalker::transmitPing()
 
 void NeighbourTalker::transmitLoRaMessage()
 {
-    AeseAppPacket* app = new AeseAppPacket("PingFrame");
+    // LAKSH: No request packet in this yet
+    // AeseAppPacket* app = new AeseAppPacket("PingFrame");
+    // LoRaMacFrame* frame = 
 }
 
 void NeighbourTalker::handleLowerLayer(cPacket* pkt)

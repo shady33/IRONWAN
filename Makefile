@@ -50,6 +50,7 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 OBJS = \
     $O/src/AeseNeighbours/NeighbourTalker.o \
     $O/src/AeseNeighbours/PacketDuplicator.o \
+    $O/src/AeseNeighbours/timeOnAir.o \
     $O/src/LoRa/LoRaGWMac.o \
     $O/src/LoRa/LoRaGWRadio.o \
     $O/src/LoRa/LoRaMac.o \
