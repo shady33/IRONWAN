@@ -20,8 +20,8 @@ def readAndPrint(filename):
     'vecvalue': parse_ndarray
     })
 
-    attributes = ['nodes','load','gatewaysPerNS']
-    scalarsToRead = ['numSent','totalEnergyConsumed','LoRa_GWPacketReceived:count','LoRa_GW_DER','sentPackets','GW_droppedDC']
+    attributes = ['nodes','load','gatewaysPerNS','numberOfNS']
+    scalarsToRead = ['numSent','totalEnergyConsumed','LoRa_GWPacketReceived:count','LoRa_GW_DER','sentPackets','GW_droppedDC','Channel 0 used time','Channel 1 used time','Channel 2 used time','Channel 3 used time']
     vectorsToRead = ['NumberOfRetransmissions']
 
     header = []
