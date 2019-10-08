@@ -86,8 +86,8 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         //variables to control ADR
         bool evaluateADRinNode;
         int ADR_ACK_CNT = 0;
-        int ADR_ACK_LIMIT = 10; //64;
-        int ADR_ACK_DELAY = 1; //32;
+        int ADR_ACK_LIMIT = 32; //64;
+        int ADR_ACK_DELAY = 32; //32;
         bool sendNextPacketWithADRACKReq = false;
         void increaseSFIfPossible();
 	bool success;

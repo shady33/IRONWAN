@@ -235,17 +235,10 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             // }
             // Schedule Next send measurements 
             double time = timeOnAir(loRaSF, loRaBW, 40, 1);
-            // if(loRaSF == 7) time = transmissionTimeTable[0];
-            // if(loRaSF == 8) time = transmissionTimeTable[1];
-            // if(loRaSF == 9) time = transmissionTimeTable[2];
-            // if(loRaSF == 10) time = transmissionTimeTable[3];
-            // if(loRaSF == 11) time = transmissionTimeTable[4];
-            // if(loRaSF == 12) time = transmissionTimeTable[5];
             do {
                 timeToNextPacket = par("timeToNextPacket");
             } while(timeToNextPacket <= time);
-            // e2edelay.record(timeToNextPacket);
-            // sendMeasurements = new cMessage("sendMeasurements");
+
             scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
         }
         // delete msg;
@@ -368,7 +361,7 @@ void SimpleLoRaApp::sendJoinRequest()
     if(evaluateADRinNode)
     {
         ADR_ACK_CNT++;
-        if(ADR_ACK_CNT == ADR_ACK_LIMIT) sendNextPacketWithADRACKReq = true;
+        if(ADR_ACK_CNT >= ADR_ACK_LIMIT) sendNextPacketWithADRACKReq = true;
         if(ADR_ACK_CNT >= ADR_ACK_LIMIT + ADR_ACK_DELAY)
         {
             ADR_ACK_CNT = 0;
@@ -380,7 +373,13 @@ void SimpleLoRaApp::sendJoinRequest()
 
 void SimpleLoRaApp::increaseSFIfPossible()
 {
-    if(loRaSF < 12) loRaSF++;
+    if(loRaTP < 14) loRaTP++;
+    if(loRaTP >= 14) {
+        loRaTP = 14;
+        if(loRaSF < 12){ 
+            loRaSF++;
+        }
+    }
 }
 
 
