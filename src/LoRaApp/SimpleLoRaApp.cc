@@ -234,7 +234,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             //     scheduleAt(simTime() + uniform(5,7),retryMeasurements);
             // }
             // Schedule Next send measurements 
-            double time = timeOnAir(loRaSF, loRaBW, 40, 1);
+            double time = timeOnAir(loRaSF, loRaBW, 40, 1)*100;
             do {
                 timeToNextPacket = par("timeToNextPacket");
             } while(timeToNextPacket <= time);

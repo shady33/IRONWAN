@@ -125,7 +125,8 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void sendActuationMessage();
     void sendActuationMessageNow(AeseAppPacket *appPacket);
     void updateAndLogNode(LoRaMacFrame* pkt);
-
+    void CountUniqueNodes(LoRaMacFrame* pkt);
+   
   public:
     virtual ~PacketForwarder();
     simsignal_t LoRa_GWPacketReceived;

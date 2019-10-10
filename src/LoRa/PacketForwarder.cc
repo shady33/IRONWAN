@@ -34,12 +34,12 @@ PacketForwarder::~PacketForwarder()
     for(int i = 0; i < 8;i++){
         cancelAndDelete(sendDownlink[i]);
     }
-    for(uint i=0;i<knownNodes.size();i++)
-    {
-        delete knownNodes[i].historyAllSNIR;
-        delete knownNodes[i].historyAllRSSI;
-        delete knownNodes[i].receivedSeqNumber;
-    }
+//    for(uint i=0;i<knownNodes.size();i++)
+//    {
+//        delete knownNodes[i].historyAllSNIR;
+//        delete knownNodes[i].historyAllRSSI;
+//        delete knownNodes[i].receivedSeqNumber;
+//    }
 }
 
 void PacketForwarder::initialize(int stage)
@@ -171,6 +171,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         // std::cout << frame << std::endl;
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
             // updateAndLogNode(frame);
+            CountUniqueNodes(frame);
             processLoraMACPacket(PK(msg));
         }else{
             delete msg;
@@ -455,6 +456,7 @@ void PacketForwarder::finish()
 {
     recordScalar("LoRa_GW_DER", double(counterOfReceivedPackets)/counterOfSentPacketsFromNodes);
     recordScalar("Sent Messages by Gateway",sentMsgs);
+    recordScalar("UniqueNodesCount",knownNodes.size());
 }
 
 void PacketForwarder::sendActuationMessage(){
@@ -674,5 +676,44 @@ void PacketForwarder::updateAndLogNode(LoRaMacFrame* pkt)
     }
 }
 
+void PacketForwarder::CountUniqueNodes(LoRaMacFrame* pkt)
+{
+    bool nodeExist = false;
+    int nodeIndex = 0;
+    for(uint i=0;i<knownNodes.size();i++)
+    {
+        if(knownNodes[i].srcAddr == pkt->getTransmitterAddress())
+        {
+            nodeExist = true;
+            nodeIndex = i;
+            break;
+        }
+    }
+    if(nodeExist == false)
+    {
+        nodeLog newNode;
+        newNode.srcAddr= pkt->getTransmitterAddress();
+        std::string str = pkt->getTransmitterAddress().str();
+        // std::vector<int> array;
+        // std::stringstream ss(str);
+        // std::string line;
+        // while (std::getline(ss,line,'-'))
+        //     array.push_back(std::strtol(line.c_str(), 0, 16));
+
+        // newNode.historyAllSNIR = new cOutVector;
+        // newNode.historyAllSNIR->setName((std::string("SNIR:") + str).c_str());
+        // newNode.historyAllSNIR->record(math::fraction2dB(pkt->getSNIR()));
+        // newNode.historyAllRSSI = new cOutVector;
+        // newNode.historyAllRSSI->setName((std::string("RSSI:") + str).c_str());
+        // newNode.historyAllRSSI->record(pkt->getRSSI());
+        // newNode.receivedSeqNumber = new cOutVector;
+        // newNode.receivedSeqNumber->setName((std::string("SeqNumber:") + str).c_str());
+        knownNodes.push_back(newNode);
+    }else{
+        // knownNodes[nodeIndex].historyAllSNIR->record(math::fraction2dB(pkt->getSNIR()));
+        // knownNodes[nodeIndex].historyAllRSSI->record(pkt->getRSSI());
+        // knownNodes[nodeIndex].receivedSeqNumber->record(pkt->getSequenceNumber());
+    }
+}
 
 } //namespace inet

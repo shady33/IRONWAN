@@ -1,8 +1,10 @@
+#!/bin/python3
 import pandas as pd
 import numpy as np
 import sys
 from prettytable import PrettyTable
 import concurrent.futures
+import statistics 
 
 def parse_if_number(s):
     try: return float(s)
@@ -21,7 +23,7 @@ def readAndPrint(filename):
     })
 
     attributes = ['nodes','load','gatewaysPerNS','numberOfNS']
-    scalarsToRead = ['numSent','totalEnergyConsumed','LoRa_GWPacketReceived:count','LoRa_GW_DER','sentPackets','GW_droppedDC','Channel 0 used time','Channel 1 used time','Channel 2 used time','Channel 3 used time']
+    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel 3 used time','UniqueNodesCount']
     vectorsToRead = ['NumberOfRetransmissions']
 
     header = []
@@ -34,29 +36,33 @@ def readAndPrint(filename):
             values.append(parse_if_number(m3.loc[(m3.attrname.astype(str) == attr) & (m3.run == run)].attrvalue))
 
         for scalar in scalarsToRead:
-            header.extend([scalar + ' total', scalar + ' average'])
+            header.extend([scalar + ' total',scalar + ' count', scalar + ' average', scalar + ' min', scalar + ' max', scalar + ' stddev'])
             val = 0
             count = 0.0
+            allVals = []
             for i in (m3.loc[(m3['name'] == scalar) & (m3.type == 'scalar') & (m3.run == run)].value):
                 val = val + i
+                allVals.append(i)
                 count = count + 1.0
             if val == 0:
-                values.extend([0.0,0.0])
+                values.extend([0.0,0.0,0.0,0.0,0.0,0.0])
             else:
-                values.extend([val,val/count])
+                values.extend([val,count,val/count,min(allVals),max(allVals),statistics.stdev(allVals)])
 
         for vector in vectorsToRead:
-            header.extend([vector, vector + str(' Min'), vector + str(' Max'), vector + str(' Mean'), vector + str(' StdDev')])
+            header.extend([vector, vector + str(' Count') ,vector + str(' Min'), vector + str(' Max'), vector + str(' Mean'), vector + str(' StdDev')])
             val = 0
             alldata = np.array([])
+            count = 0.0
             for i in (m3.loc[(m3['name'] == vector) & (m3.run == run)].vecvalue):
                 if type(i) == np.ndarray:
                     val = val + len(i)
                     alldata = np.concatenate((alldata,i),axis=0)
+                    count = count + 1.0
             if val == 0:
-                values.extend([0,0,0,0,0])
+                values.extend([0,0,0,0,0,0])
             else:
-                values.extend([val,np.min(alldata),np.max(alldata),np.mean(alldata),np.std(alldata)])
+                values.extend([val,count,np.min(alldata),np.max(alldata),np.mean(alldata),np.std(alldata)])
 
         if not tabledCreated:
             prettyTable = PrettyTable(header)
