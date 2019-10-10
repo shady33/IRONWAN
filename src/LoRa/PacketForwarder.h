@@ -108,7 +108,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     cPacketQueue actuationQueue;
     cSimulinkRTScheduler *rtScheduler;
     std::vector<nodeLog> knownNodes;
-
+    double totalUsedTimes;
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
@@ -120,6 +120,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void setSocketOptions();
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     void receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details) override;
+    void receiveSignal(cComponent *src, simsignal_t id,double value, cObject *details) override;
     void scheduleDownlink(int val,cPacket *pk);
     void sendFeedbackMessage(bool first);
     void sendActuationMessage();

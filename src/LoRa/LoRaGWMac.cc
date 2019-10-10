@@ -49,6 +49,7 @@ void LoRaGWMac::initialize(int stage)
         }
         else
             address.setAddress(addressString);
+        GW_USED_TIME = registerSignal("GW_USED_TIME");
     }
     else if (stage == INITSTAGE_LINK_LAYER) {
         radio->setRadioMode(IRadio::RADIO_MODE_TRANSCEIVER);
@@ -118,6 +119,7 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         scheduleAt(simTime() + (delta*10), dutyCycleTimer);
         GW_forwardedDown++;
         usedTimes[3] = usedTimes[3] + delta;
+        emit(GW_USED_TIME,delta);
     }
     else
     {

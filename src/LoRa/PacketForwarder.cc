@@ -50,6 +50,7 @@ void PacketForwarder::initialize(int stage)
         LoRa_GWPacketReceived = registerSignal("LoRa_GWPacketReceived");
         getSimulation()->getSystemModule()->subscribe("LoRaMiniSlotCollision", this);
         getSimulation()->getSystemModule()->subscribe("LoRaDataSlotCollision", this);
+        getSimulation()->getSystemModule()->subscribe("GW_USED_TIME", this);
         localPort = par("localPort");
         destPort = par("destPort");
 
@@ -439,7 +440,7 @@ void PacketForwarder::sendPacket(int val)
     delete frameCopy[val];
 }
 
-void PacketForwarder::receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details)
+void PacketForwarder::receiveSignal(cComponent *source, simsignal_t signalID, long value ,cObject *details)
 {
     if(!strcmp(getSignalName(signalID),"LoRaMiniSlotCollision")){
         // std::cout << "Receivd collision at minislot " << value << std::endl;
@@ -452,11 +453,20 @@ void PacketForwarder::receiveSignal(cComponent *source, simsignal_t signalID, lo
     }
 }
 
+void PacketForwarder::receiveSignal(cComponent *src, simsignal_t signalID, double value, cObject *details)
+{
+    if(!strcmp(getSignalName(signalID),"GW_USED_TIME")){
+       totalUsedTimes = totalUsedTimes + value;
+    }
+}
+
 void PacketForwarder::finish()
 {
     recordScalar("LoRa_GW_DER", double(counterOfReceivedPackets)/counterOfSentPacketsFromNodes);
     recordScalar("Sent Messages by Gateway",sentMsgs);
     recordScalar("UniqueNodesCount",knownNodes.size());
+    recordScalar("AverageUsedTimePerNode", knownNodes.size()/totalUsedTimes);
+    recordScalar("DownlinkTotalUsedTimes", totalUsedTimes);   
 }
 
 void PacketForwarder::sendActuationMessage(){

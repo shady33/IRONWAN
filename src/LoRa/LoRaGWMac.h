@@ -47,7 +47,8 @@ public:
     void createFakeLoRaMacFrame();
     virtual DevAddr getAddress();
     virtual ~LoRaGWMac();
-    
+    simsignal_t GW_USED_TIME;
+        
 protected:
     DevAddr address;
 

@@ -24,6 +24,7 @@ import inet.linklayer.contract.IMACProtocol;
 simple LoRaGWMac extends MACProtocolBase like IMACProtocol
 {
     parameters:
+        @signal[GW_USED_TIME](type=double); // optional
         string radioModule = default("^.radio"); // The path to the Radio module  //FIXME remove default value
         string address = default("auto"); 
         string queueModule = default(""); // name of optional external queue module
