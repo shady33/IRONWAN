@@ -70,9 +70,9 @@ void PacketForwarder::initialize(int stage)
         numberOfAeseNodes = par("numberOfAeseNodes");
         numberOfAeseActuatorNodes = par("numberOfAeseActuatorNodes");
         numberOfSubSystems = par("numberOfSubSystems");
-
-        gwNSNumber = par("gwNSNumber");
-
+        int numberOfNS = par("numberOfNS");
+        gwNSNumber = DevAddr::generateGwNSNumber(numberOfNS);
+        
         if(enableDQ){
             noOfMslots = par("noOfMslots");
             noOfNslots = par("noOfNslots");
@@ -140,14 +140,17 @@ void PacketForwarder::startUDP()
     socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), localPort);
     
     const char *destAddrs = par("destAddresses");
-    // std::string destAddrsNew;
-    // std::cout << *destAddrs << std::endl;
-    // if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
-    //     std::stringstream ss;
-    //     ss << "networkServer[" << gwNSNumber << "]";
-    //     destAddrsNew = ss.str();
-    // }
-    cStringTokenizer tokenizer(destAddrs);
+    std::string destAddrsString;
+    std::cout << *destAddrs << std::endl;
+    if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
+         std::stringstream ss;
+         ss << "networkServer[" << gwNSNumber << "]";
+         destAddrsString = ss.str();
+    }
+    const char *destAddrsNew = destAddrsString.c_str();
+    std::cout << destAddrsNew << std::endl;
+
+    cStringTokenizer tokenizer(destAddrsNew);
     const char *token;
 
     // Create UDP sockets to multiple destination addresses (network servers)

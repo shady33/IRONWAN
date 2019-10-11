@@ -96,7 +96,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int actuatorNumbers[128];
     int actuatorSequenceNumbers[128];
     int currentCntActuators;
-
+    int numberOfNS;
     int gwNSNumber;
     int sentMsgs;
   protected:

@@ -35,10 +35,14 @@ class INET_API DevAddr
     uint32 address;    // 4*8=48 bit address
     static unsigned int autoAddressCtr;    // global counter for generateAutoAddress()
     static bool simulationLifecycleListenerAdded;
-    
+
   public:
     static unsigned int actuatorNumberCtr;
     static unsigned int SensorNumberCtr;
+    static unsigned int gwNSAddressCtr; 
+    static unsigned int nsAddressCtr;
+    static unsigned int nsCount;
+
 
 #if OMNETPP_VERSION >= 0x500
     class SimulationLifecycleListener : public cISimulationLifecycleListener
@@ -48,6 +52,9 @@ class INET_API DevAddr
                 autoAddressCtr = 0;
                 actuatorNumberCtr = 0;
                 SensorNumberCtr=0;
+                gwNSAddressCtr=0;
+                nsAddressCtr=0;
+                nsCount=0;
             }
         }
 
@@ -179,6 +186,9 @@ class INET_API DevAddr
 
     static int generateActuatorNumber();
     static int generateSensorNumber();
+
+    static int generateNetworkServerNumber();
+    static int generateGwNSNumber(int ns);
 
     bool operator<(const DevAddr& other) const { return address < other.address; }
 

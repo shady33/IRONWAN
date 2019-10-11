@@ -33,7 +33,7 @@ void NetworkServerApp::initialize(int stage)
         localPort = par("localPort");
         destPort = par("destPort");
         adrMethod = par("adrMethod").stdstringValue();
-        networkServerNumber = par("networkServerNumber");
+        networkServerNumber = DevAddr::generateNetworkServerNumber();
     } else if (stage == INITSTAGE_APPLICATION_LAYER) {
         startUDP();
         getSimulation()->getSystemModule()->subscribe("LoRa_AppPacketSent", this);

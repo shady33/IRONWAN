@@ -74,7 +74,7 @@ network LoRaNetworkMultipleVendors
         int numberOfNodes = default(1);
         int numberOfAeseNodes = default(1);
         int numberOfAeseActuatorNodes = default(1);
-        int numberOfGatewaysPerNS = default(1);
+        int numberOfGateways = default(1);
         int networkSizeX = default(500);
         int networkSizeY = default(500);
         int numberOfNS = default(1);
@@ -89,10 +89,7 @@ network LoRaNetworkMultipleVendors
         loRaNodes[numberOfNodes]: LoRaNode {
             @display("p=83.664,233.856");
         }
-        loRaGWNS0[numberOfGatewaysPerNS]: LoRaAeseGW {
-            @display("p=83.664,150.192;is=s");
-        }
-        loRaGWNS1[numberOfGatewaysPerNS]: LoRaAeseGW {
+        loRaGWs[numberOfGateways]: LoRaAeseGW {
             @display("p=83.664,150.192;is=s");
         }
         LoRaMedium: LoRaMedium {
@@ -107,17 +104,15 @@ network LoRaNetworkMultipleVendors
         internetCloud: InternetCloud {
             @display("p=138,27");
         }
-        gwRouter[numberOfGatewaysPerNS*2]: Router;
+        gwRouter[numberOfGateways]: Router;
         nsRouter[numberOfNS]: Router;
     connections:
         for i=0..numberOfNS-1 {
             networkServer[i].ethg++ <--> Eth1G <--> nsRouter[i].ethg++;
             nsRouter[i].pppg++ <--> Eth1G <--> internetCloud.pppg++;
         }
-        for i=0..numberOfGatewaysPerNS-1 {
+        for i=0..numberOfGateways-1 {
             internetCloud.pppg++ <--> Eth1G <--> gwRouter[i].pppg++;
-            internetCloud.pppg++ <--> Eth1G <--> gwRouter[numberOfGatewaysPerNS+i].pppg++;
-            gwRouter[i].ethg++ <--> Eth1G <--> loRaGWNS0[i].ethg++;
-            gwRouter[numberOfGatewaysPerNS+i].ethg++ <--> Eth1G <--> loRaGWNS1[i].ethg++;
+            gwRouter[i].ethg++ <--> Eth1G <--> loRaGWs[i].ethg++;
         }
 }

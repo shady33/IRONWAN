@@ -25,6 +25,10 @@ bool DevAddr::simulationLifecycleListenerAdded;
 unsigned int DevAddr::actuatorNumberCtr;
 unsigned int DevAddr::SensorNumberCtr;
 
+unsigned int DevAddr::nsAddressCtr;
+unsigned int DevAddr::gwNSAddressCtr;
+unsigned int DevAddr::nsCount;
+
 const DevAddr DevAddr::UNSPECIFIED_ADDRESS;
 const DevAddr DevAddr::BROADCAST_ADDRESS("ff:ff:ff:ff");
 
@@ -177,6 +181,25 @@ int DevAddr::generateSensorNumber()
     return (DevAddr::SensorNumberCtr-1);
 }
 
+int DevAddr::generateNetworkServerNumber()
+{
+    DevAddr::nsAddressCtr = DevAddr::nsAddressCtr + 1;
+    return (DevAddr::nsAddressCtr-1);
+}
+
+int DevAddr::generateGwNSNumber(int ns)
+{
+    if(DevAddr::nsCount == 0)
+        DevAddr::nsCount = ns;
+    int nsNumber = DevAddr::gwNSAddressCtr;
+
+    DevAddr::gwNSAddressCtr = DevAddr::gwNSAddressCtr + 1;
+
+    if(DevAddr::gwNSAddressCtr >= DevAddr::nsCount)
+        DevAddr::gwNSAddressCtr = 0;
+
+    return nsNumber;
+}
 
 } // namespace inet
 
