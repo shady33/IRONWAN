@@ -141,14 +141,12 @@ void PacketForwarder::startUDP()
     
     const char *destAddrs = par("destAddresses");
     std::string destAddrsString;
-    std::cout << *destAddrs << std::endl;
     if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
          std::stringstream ss;
          ss << "networkServer[" << gwNSNumber << "]";
          destAddrsString = ss.str();
     }
     const char *destAddrsNew = destAddrsString.c_str();
-    std::cout << destAddrsNew << std::endl;
 
     cStringTokenizer tokenizer(destAddrsNew);
     const char *token;
