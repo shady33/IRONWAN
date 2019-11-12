@@ -277,6 +277,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
 {
     bool sendADR = false;
     bool sendADRAckRep = false;
+    bool sendACK = false;
     double SNRm; //needed for ADR
     int numberOfPickedNodes;
 
@@ -325,6 +326,8 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
             {
                 knownNodes[i].numberOfSentADRPackets++;
             }
+            if(pkt->getConfirmedMessage())
+                sendACK = true;
         }
     }
 
@@ -393,7 +396,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setLoRaBW(pkt->getLoRaBW());
         sentMsgs++;
         socket.sendTo(frameToSend, pickedGateway, destPort);
-    }else if(pkt->getConfirmedMessage()){
+    }else if(sendACK){
         AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
         downlink->setMsgType(JOIN_REPLY);
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ACKPacket");
