@@ -21,8 +21,8 @@ simple PacketDuplicator
     @display("i=block/switch");
 
     gates:
-        input upperLayerIn[];
-        output upperLayerOut[];
-        input lowerLayerIn;
-        output lowerLayerOut;
+        input layerIn[];
+        output layerOut[];
+        //input lowerLayerIn;
+        //output lowerLayerOut;
 }

@@ -25,6 +25,7 @@
 #include "../LoRa/LoRaMacFrame_m.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
 #include "../misc/cSimulinkRTScheduler.h"
 #include "../LoRaApp/AeseAppPacket_m.h"
 #include "SupportedProtocols.h"
@@ -58,6 +59,17 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
             protocol(protocol), lastSeen(lastSeen) {}
     };
 
+    struct DownlinkPacket
+    {
+        simtime_t addedToQueue;
+        simtime_t deadByTime;
+        int sequenceNumber;
+        DevAddr addr;
+        cPacket* pkt;
+        DownlinkPacket() {}
+        DownlinkPacket(simtime_t addedToQueue, simtime_t deadByTime, int sequenceNumber, DevAddr addr, cPacket* pkt) :
+            addedToQueue(addedToQueue), deadByTime(deadByTime), sequenceNumber(sequenceNumber) , addr(addr), pkt(pkt) {}
+    };
 
     struct DevAddr_compare
     {
@@ -74,19 +86,34 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     bool AeseGWEnabled;
     simtime_t periodicPingInterval;
     cMessage *transmitPingMessage;
+    cMessage *checkAnyUnsentMessages;
     SupportedProtocols currentProtocol;
+
+  protected:
+    UDPSocket socket;
+    std::vector<L3Address> gwAddresses;
+    int numberOfGateways;
+    std::list<DownlinkPacket> downlinkList;
+    typedef std::map<DevAddr,int, DevAddr_compare> DownlinkLastDropRequest;
+    DownlinkLastDropRequest *DownlinkLastDropRequestList = nullptr;
 
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
     virtual void finish() override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-    void handleLoRaFrame(cPacket* pkt);    
+    virtual std::string str() const override { return "NeighbourTalker"; };
+    void handleLoRaFrame(cPacket* pkt);
     void transmitPing();
+    void handleDownlinkQueue();
     void transmitLoRaMessage();
+    void startUDP();
+
   public:
     virtual ~NeighbourTalker();
     void handleLowerLayer(cPacket* pkt);
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, const char* s, cObject* details ) override;
+
 };
 } //namespace inet
 #endif

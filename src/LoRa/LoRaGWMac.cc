@@ -50,6 +50,7 @@ void LoRaGWMac::initialize(int stage)
         else
             address.setAddress(addressString);
         GW_USED_TIME = registerSignal("GW_USED_TIME");
+        GW_TRANSMITTED_PACKET = registerSignal("GW_TRANSMITTED_PACKET");
     }
     else if (stage == INITSTAGE_LINK_LAYER) {
         radio->setRadioMode(IRadio::RADIO_MODE_TRANSCEIVER);
@@ -118,8 +119,12 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         // if(frame->getLoRaSF() == 12) delta = 14.49984;
         scheduleAt(simTime() + (delta*10), dutyCycleTimer);
         GW_forwardedDown++;
-        usedTimes[3] = usedTimes[3] + delta;
+        usedTimes[3] = usedTimes[3] + delta;        
         emit(GW_USED_TIME,delta);
+        std::string addrStrwithId = (frame->getReceiverAddress()).str();
+        addrStrwithId += ":";
+        addrStrwithId += std::to_string(frame->getSequenceNumber());
+        emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
     }
     else
     {
@@ -139,12 +144,12 @@ void LoRaGWMac::handleLowerPacket(cPacket *msg)
         usedTimes[channelNumber] = usedTimes[channelNumber] + delta;
     }
 
-
-    sendUp(frame);
-    // if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
-        // sendUp(frame);
-    // else
-        // delete frame;
+    // sendUp(frame);
+    if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
+        sendUp(frame);
+    else{
+        delete frame;
+    }
 }
 
 void LoRaGWMac::sendPacketBack(LoRaMacFrame *receivedFrame)
@@ -176,6 +181,11 @@ void LoRaGWMac::receiveSignal(cComponent *source, simsignal_t signalID, long val
 DevAddr LoRaGWMac::getAddress()
 {
     return address;
+}
+
+std::string LoRaGWMac::str() const
+{
+    return "LoRaGWMac" + address.str(); 
 }
 
 }

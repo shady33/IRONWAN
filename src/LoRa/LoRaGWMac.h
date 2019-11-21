@@ -42,13 +42,14 @@ public:
     virtual void handleUpperPacket(cPacket *msg) override;
     virtual void handleLowerPacket(cPacket *msg) override;
     virtual void handleSelfMessage(cMessage *message) override;
-
+    virtual std::string str() const override;
     void sendPacketBack(LoRaMacFrame *receivedFrame);
     void createFakeLoRaMacFrame();
     virtual DevAddr getAddress();
     virtual ~LoRaGWMac();
     simsignal_t GW_USED_TIME;
-        
+    simsignal_t GW_TRANSMITTED_PACKET;
+    
 protected:
     DevAddr address;
 

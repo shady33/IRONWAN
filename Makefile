@@ -6,7 +6,8 @@
 #
 
 # Name of target to be created (-o option)
-TARGET = flora$(D)$(EXE_SUFFIX)
+TARGET = lora-multi-gateway$(D)$(EXE_SUFFIX)
+
 TARGET_DIR = .
 
 # User interface (uncomment one) (-u option)

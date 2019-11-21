@@ -49,6 +49,8 @@ simple PacketForwarder like IUDPApp
 
     bool enableDQ = default(false);
     bool enableActuation = default(false);
+
+    int numberOfGateways = default(1);
     gates:
 		input lowerLayerIn @labels(PacketForwarder/up);
         output lowerLayerOut @labels(PacketForwarder/down);

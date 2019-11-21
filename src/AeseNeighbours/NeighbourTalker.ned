@@ -15,12 +15,17 @@
 
 package loranetwork.AeseNeighbours;
 
-simple NeighbourTalker
+import inet.applications.contract.IUDPApp;
+
+simple NeighbourTalker like IUDPApp
 {
     @class(inet::NeighbourTalker);
     bool AeseGWEnabled = default(false);
     double periodicPingInterval @unit(s)= default(100s);
+    int numberOfGateways = default(1);
     gates:
 		input lowerLayerIn @labels(NeighbourTalker/up);
         output lowerLayerOut @labels(NeighbourTalker/down);
+		input udpIn @labels(PacketForwarder/udpIn);
+        output udpOut @labels(PacketForwarder/udpOut);
 }

@@ -25,26 +25,29 @@ void PacketDuplicator::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
         // number of ports
-        numPorts = gate("upperLayerOut", 0)->size();
-        if (gate("upperLayerIn", 0)->size() != numPorts)
-            throw cRuntimeError("the sizes of the upperLayerOut[] and upperLayerIn[] gate vectors must be the same");
+        numPorts = gate("layerOut", 0)->size();
+        if (gate("layerIn", 0)->size() != numPorts)
+            throw cRuntimeError("the sizes of the layerOut[] and layerIn[] gate vectors must be the same");
     }
 }
 
 void PacketDuplicator::handleMessage(cMessage *msg)
 {
-    if(msg->arrivedOn("lowerLayerIn"))
-        broadcastFrame(msg);
-    else
-        send(msg,"lowerLayerOut");
+    // if(msg->arrivedOn("lowerLayerIn"))
+    broadcastFrame(msg);
+    // else
+        // send(msg,"lowerLayerOut");
 }
 
 void PacketDuplicator::broadcastFrame(cMessage *msg)
 {
+    int idx = (msg->getArrivalGate())->getIndex();
     for (int i = 0; i < numPorts; ++i) {
-        cMessage *clone = msg->dup();
-        clone->setControlInfo((msg->getControlInfo())->dup());
-        send(clone, "upperLayerOut", i);
+        if(i != idx){
+            cMessage *clone = msg->dup();
+            clone->setControlInfo((msg->getControlInfo())->dup());
+            send(clone, "layerOut", i);
+        }
     }
     delete msg;
 }

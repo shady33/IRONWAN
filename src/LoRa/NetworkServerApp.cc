@@ -45,6 +45,7 @@ void NetworkServerApp::initialize(int stage)
             counterOfReceivedPacketsPerSF[i] = 0;
             counterOfSentPacketsFromNodesPerSF[i] = 0;
         }
+	sequenceNumber = 0;
     }
 }
 
@@ -270,7 +271,8 @@ void NetworkServerApp::sendBackDownlink(LoRaMacFrame* frame, L3Address pickedGat
     response->setLoRaBW(frame->getLoRaBW());
     response->setLoRaCR(frame->getLoRaCR());
     response->setReceiverAddress(frame->getTransmitterAddress());
-
+    response->setSequenceNumber(sequenceNumber);
+    sequenceNumber = sequenceNumber + 1;
     socket.sendTo(response, pickedGateway, destPort);
 }
 void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW)
@@ -384,6 +386,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         }
 
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ADRPacket");
+        frameToSend->setMsgType(ACK_ADR_PACKET);
         frameToSend->encapsulate(mgmtPacket);
         frameToSend->setReceiverAddress(pkt->getTransmitterAddress());
         //FIXME: What value to set for LoRa TP
@@ -395,11 +398,14 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setLoRaSF(9);
         frameToSend->setLoRaBW(pkt->getLoRaBW());
         sentMsgs++;
+        frameToSend->setSequenceNumber(sequenceNumber);
+        sequenceNumber = sequenceNumber + 1;
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }else if(sendACK){
         AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
         downlink->setMsgType(JOIN_REPLY);
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ACKPacket");
+        frameToSend->setMsgType(ACK_ADR_PACKET);
         frameToSend->encapsulate(downlink);
         frameToSend->setReceiverAddress(pkt->getTransmitterAddress());
         //FIXME: What value to set for LoRa TP
@@ -411,7 +417,9 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setLoRaSF(9);
         frameToSend->setLoRaBW(pkt->getLoRaBW());
         sentMsgs++;
-        socket.sendTo(frameToSend, pickedGateway, destPort);
+        frameToSend->setSequenceNumber(sequenceNumber);
+        sequenceNumber = sequenceNumber + 1;
+	socket.sendTo(frameToSend, pickedGateway, destPort);
     }
     // else{
     //     sendBackDownlink(pkt,pickedGateway);

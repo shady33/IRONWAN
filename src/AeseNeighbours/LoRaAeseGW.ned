@@ -77,14 +77,16 @@ module LoRaAeseGW
     connections allowunconnected:
         packetForwarder.udpOut --> udp.appIn++;
         packetForwarder.udpIn <-- udp.appOut++;
-        LoRaGWNic.upperLayerOut --> packetDuplicator.lowerLayerIn;
-        packetDuplicator.lowerLayerOut --> LoRaGWNic.upperLayerIn;
+        LoRaGWNic.upperLayerOut --> packetDuplicator.layerIn++;
+        packetDuplicator.layerOut++ --> LoRaGWNic.upperLayerIn;
 		
-		packetForwarder.lowerLayerOut --> packetDuplicator.upperLayerIn++;
-		neighbourTalker.lowerLayerOut --> packetDuplicator.upperLayerIn++;
-		packetForwarder.lowerLayerIn <-- packetDuplicator.upperLayerOut++;
-		neighbourTalker.lowerLayerIn <-- packetDuplicator.upperLayerOut++;
+		packetForwarder.lowerLayerOut --> packetDuplicator.layerIn++;
+		neighbourTalker.lowerLayerOut --> packetDuplicator.layerIn++;
+		packetForwarder.lowerLayerIn <-- packetDuplicator.layerOut++;
+		neighbourTalker.lowerLayerIn <-- packetDuplicator.layerOut++;
 		
+		neighbourTalker.udpOut --> udp.appIn++;
+        neighbourTalker.udpIn <-- udp.appOut++;
 		
         for i=0..sizeof(ethg)-1 {
             ethg[i] <--> { @display("m=s"); } <--> eth[i].phys;

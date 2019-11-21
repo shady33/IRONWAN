@@ -10,7 +10,6 @@ import loranetwork.LoraNode.AeseLoRaActuatorNode;
 import loranetwork.LoraNode.AeseLoRaNode;
 import loranetwork.LoraNode.LoRaGW;
 import loranetwork.LoraNode.LoRaNode;
-import loranetwork.AeseNeighbours.PacketDuplicator;
 import loranetwork.AeseNeighbours.LoRaAeseGW;
 
 @license(LGPL);

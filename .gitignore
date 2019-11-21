@@ -42,3 +42,5 @@ flora_dbg
 simulations/*.rtt
 .settings/language.settings.xml
 simulations/.qtenvrc
+lora-multi-gateway
+lora-multi-gateway_dbg

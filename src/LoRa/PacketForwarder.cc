@@ -72,7 +72,8 @@ void PacketForwarder::initialize(int stage)
         numberOfSubSystems = par("numberOfSubSystems");
         int numberOfNS = par("numberOfNS");
         gwNSNumber = DevAddr::generateGwNSNumber(numberOfNS);
-        
+        numberOfGateways = par("numberOfGateways");
+
         if(enableDQ){
             noOfMslots = par("noOfMslots");
             noOfNslots = par("noOfNslots");
@@ -138,7 +139,7 @@ void PacketForwarder::startUDP()
     socket.setOutputGate(gate("udpOut"));
     const char *localAddress = par("localAddress");
     socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), localPort);
-    
+
     const char *destAddrs = par("destAddresses");
     std::string destAddrsString;
     if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {

@@ -101,7 +101,9 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int sentMsgs;
   protected:
     std::vector<L3Address> destAddresses;
+    std::vector<L3Address> gwAddresses;    
     int localPort = -1, destPort = -1;
+    int numberOfGateways;
     // state
     UDPSocket socket;
     cMessage *selfMsg = nullptr;

@@ -15,7 +15,6 @@
 
 #include "NeighbourTalker.h"
 
-
 namespace inet {
 
 Define_Module(NeighbourTalker);
@@ -28,6 +27,7 @@ NeighbourTalker::~NeighbourTalker()
         ReceivedPacketsList->erase(cur);
     }
     cancelAndDelete(transmitPingMessage);
+    cancelAndDelete(checkAnyUnsentMessages);
 }
 
 void NeighbourTalker::initialize(int stage)
@@ -37,11 +37,44 @@ void NeighbourTalker::initialize(int stage)
         periodicPingInterval = par("periodicPingInterval");
         transmitPingMessage = new cMessage("Time To Transmit Ping Message");
         currentProtocol = LORA;
+        numberOfGateways = par("numberOfGateways");
+        getSimulation()->getSystemModule()->subscribe("GW_TRANSMITTED_PACKET", this);
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
         ReceivedPacketsList = new ReceivedPacketsMap();
+        DownlinkLastDropRequestList = new DownlinkLastDropRequest();
+        checkAnyUnsentMessages = new cMessage("Check if any unsent messages in queue");
         if(AeseGWEnabled){
-            scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
+            scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
+            // scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
         }
+    }
+}
+
+void NeighbourTalker::startUDP()
+{
+    socket.setOutputGate(gate("udpOut"));
+    const char *localAddress = par("localAddress");
+    socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), 2500);
+
+    std::string gwAddrsString;
+    std::stringstream ss;
+    for(int i=0;i<numberOfGateways;i++)
+         ss << "loRaGWs[" << i << "] ";
+    gwAddrsString = ss.str();
+    const char *gwAddrsNew = gwAddrsString.c_str();
+
+    cStringTokenizer tokenizerGW(gwAddrsNew);
+    const char *tokenGW;
+
+    // Create UDP sockets to multiple destination addresses (network servers)
+    while ((tokenGW = tokenizerGW.nextToken()) != nullptr) {
+        L3Address result;
+        L3AddressResolver().tryResolve(tokenGW, result);
+        if (result.isUnspecified())
+            EV_ERROR << "cannot resolve destination address: " << tokenGW << endl;
+        else
+            EV << "Got destination address: " << tokenGW << " with result: " << result << endl;
+        gwAddresses.push_back(result);
     }
 }
 
@@ -59,12 +92,52 @@ void NeighbourTalker::handleMessage(cMessage *msg)
         EV << "Time to transmit a ping message" << endl;
         transmitPing();
         scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
+    }else if(msg == checkAnyUnsentMessages){
+        EV << "Time to transmit a ping message" << endl;
+        handleDownlinkQueue();
+        scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
     }   
 }
 
 void NeighbourTalker::finish()
 {
+    for(auto& elem: downlinkList){
+        delete elem.pkt;
+    }
+}
 
+void NeighbourTalker::handleDownlinkQueue()
+{
+    // for(auto& elem : downlinkList){
+    for(std::list<DownlinkPacket>::iterator it=downlinkList.begin()++; it != downlinkList.end(); ++it){
+        // std::cout << "Added to queue:" << elem.addedToQueue << std::endl;
+        // std::cout << "Dead by time:" << elem.deadByTime << std::endl;
+        // std::cout << "Dev Addr:" << elem.addr << std::endl;
+        // std::cout << "Pkt" << elem.pkt << std::endl;
+        int sequenceNumberInList = -1;
+        auto iter = DownlinkLastDropRequestList->find((*it).addr);
+        if(iter != DownlinkLastDropRequestList->end()){
+            sequenceNumberInList = iter->second;
+        }
+    
+        if((*it).sequenceNumber == sequenceNumberInList){
+            // The message was added to queue and broadcast by the node
+            delete (*it).pkt; 
+            downlinkList.erase(it++);
+         }else{
+            if(simTime() > (*it).deadByTime){
+                std::cout << "Past Dead By time, bye bye!" << std::endl;
+                delete (*it).pkt; 
+                downlinkList.erase(it++); 
+            }else{
+                if(simTime() - (*it).addedToQueue > 0.1){
+                    std::cout << "Time to forward and delete message" << std::endl;;
+                    delete (*it).pkt; 
+                    downlinkList.erase(it++); 
+                }
+            }
+         }
+    }
 }
 
 void NeighbourTalker::transmitPing()
@@ -86,7 +159,6 @@ void NeighbourTalker::transmitLoRaMessage()
 void NeighbourTalker::handleLowerLayer(cPacket* pkt)
 {
     std::string className(pkt->getClassName());
-
     if(className.compare("inet::LoRaMacFrame") == 0)
         handleLoRaFrame(pkt);
     else
@@ -135,7 +207,40 @@ void NeighbourTalker::handleLoRaFrame(cPacket *pkt)
         // This is overhearing of downlink messages
         // It is one of the methods for neighbour discovery, but we are 
         // ignoring it for now
-        delete pkt;
+        // Update 1: This is also now a message from my own packetforwarder
+        // which is the Ackpacket and we need to cache it for my packetforwarder
+        // Update 2: Overhearing of downlink messages has been disabled in LoRaGWMac
+
+        if(frame->getMsgType() == ACK_ADR_PACKET){
+            // std::cout << getParentModule()->str() << frame->getReceiverAddress() << " " << frame->getMsgType() << std::endl;
+            downlinkList.emplace_back(simTime(),simTime(),frame->getSequenceNumber(),frame->getReceiverAddress(),pkt);
+        }else{
+           delete pkt; 
+        }
+        // delete pkt;
+    }
+}
+
+void NeighbourTalker::receiveSignal(cComponent *source, simsignal_t signalID, const char* s, cObject* details )
+{
+    if(!strcmp(getSignalName(signalID),"GW_TRANSMITTED_PACKET")){
+        std::string receivedString = s;
+        std::string addrstring = receivedString.substr(0,11);
+        DevAddr addr = DevAddr(addrstring.c_str());
+        // auto iter = DownlinkLastDropRequestList->find(addr);
+        // if( iter != DownlinkLastDropRequestList.end()){
+        (*DownlinkLastDropRequestList)[addr] = std::stoi(receivedString.substr(12));
+        // }else{
+
+        // }
+        // DownlinkLastDropRequestList
+        // for(std::list<DownlinkPacket>::iterator it=downlinkList.begin()++; it != downlinkList.end(); ++it){
+        //     if(!strcmp((((*it).addr).str()).c_str(),s)){
+        //         std::cout << "Deleting from list" << std::endl;
+        //         delete (*it).pkt;
+        //         downlinkList.erase(it++);
+        //     }
+        // }
     }
 }
 
