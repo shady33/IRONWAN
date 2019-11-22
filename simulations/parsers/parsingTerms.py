@@ -29,6 +29,7 @@ def readAndPrint(filename):
     header = []
     tabledCreated = False
     prettyTable = []
+    allDataForFile = []
     for run in m3.run.unique():
         values = []
         for attr in attributes:
@@ -36,7 +37,7 @@ def readAndPrint(filename):
             values.append(parse_if_number(m3.loc[(m3.attrname.astype(str) == attr) & (m3.run == run)].attrvalue))
 
         for scalar in scalarsToRead:
-            header.extend([scalar + ' total',scalar + ' count', scalar + ' average', scalar + ' min', scalar + ' max', scalar + ' stddev'])
+            header.extend([scalar + '_total',scalar + '_count', scalar + '_average', scalar + '_min', scalar + '_max', scalar + '_stddev'])
             val = 0
             count = 0.0
             allVals = []
@@ -50,7 +51,7 @@ def readAndPrint(filename):
                 values.extend([val,count,val/count,min(allVals),max(allVals),statistics.stdev(allVals)])
 
         for vector in vectorsToRead:
-            header.extend([vector, vector + str(' Count') ,vector + str(' Min'), vector + str(' Max'), vector + str(' Mean'), vector + str(' StdDev')])
+            header.extend([vector, vector + str('_Count') ,vector + str('_Min'), vector + str('_Max'), vector + str('_Mean'), vector + str('_StdDev')])
             val = 0
             alldata = np.array([])
             count = 0.0
@@ -67,12 +68,25 @@ def readAndPrint(filename):
         if not tabledCreated:
             prettyTable = PrettyTable(header)
             tabledCreated = True
+            allDataForFile.append(",".join(header))
+        allDataForFile.append(",".join(map(str,values)))
         prettyTable.add_row(values)
     print(filename)
     print(prettyTable)
+    return allDataForFile
 
 
 if __name__ == '__main__':
-    filesToParse = sys.argv[1:]
-    for i in range(1,len(sys.argv)):
-        readAndPrint(sys.argv[i])
+    filesToParse = sys.argv[2:]
+    fileToWrite = open(sys.argv[1],'w')
+    headerWritten = False
+    for i in filesToParse:
+        allDataForFile = readAndPrint(i)
+        if not headerWritten:
+            fileToWrite.write("\n".join(allDataForFile))
+            fileToWrite.write("\n")
+            headerWritten = True
+        else:
+            fileToWrite.write("\n".join(fileToWrite[1:]))
+            fileToWrite.write("\n")
+
