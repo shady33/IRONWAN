@@ -23,6 +23,7 @@ simple NeighbourTalker like IUDPApp
     bool AeseGWEnabled = default(false);
     double periodicPingInterval @unit(s)= default(100s);
     int numberOfGateways = default(1);
+    string localAddress = default("");
     gates:
 		input lowerLayerIn @labels(NeighbourTalker/up);
         output lowerLayerOut @labels(NeighbourTalker/down);

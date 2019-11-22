@@ -29,10 +29,22 @@ namespace inet {
 using namespace physicallayer;
 
 class LoRaGWMac: public MACProtocolBase {
+protected:
+    struct LoRaSendQueue
+    {
+        simtime_t sendingTime;
+        simtime_t freeAfter;
+        LoRaMacFrame* frame;
+        LoRaSendQueue() {}
+        LoRaSendQueue(simtime_t sendingTime, simtime_t freeAfter, LoRaMacFrame* frame) :
+            sendingTime(sendingTime), freeAfter(freeAfter), frame(frame) {}
+    };
+
 public:
     double usedTimes[4];
     bool waitingForDC;
     cMessage *dutyCycleTimer;
+    cMessage *sendMessageFromQueue;
     virtual void initialize(int stage) override;
     virtual void finish() override;
     virtual InterfaceEntry *createInterfaceEntry() override;
@@ -45,6 +57,7 @@ public:
     virtual std::string str() const override;
     void sendPacketBack(LoRaMacFrame *receivedFrame);
     void createFakeLoRaMacFrame();
+    simtime_t getTimeForWhenNextMessageIsPossible() const;
     virtual DevAddr getAddress();
     virtual ~LoRaGWMac();
     simsignal_t GW_USED_TIME;
@@ -57,6 +70,7 @@ protected:
     IRadio::TransmissionState transmissionState = IRadio::TRANSMISSION_STATE_UNDEFINED;
 
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details) override;
+    std::list<LoRaSendQueue> sendingQueue;
 };
 
 }

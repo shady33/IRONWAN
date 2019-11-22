@@ -74,4 +74,6 @@ packet LoRaMacFrame {
     int position[64];
     int numberOfFrames;
     bool confirmedMessage;
+
+    simtime_t sendingTime;
 }

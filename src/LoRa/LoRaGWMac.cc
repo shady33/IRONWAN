@@ -24,7 +24,8 @@ Define_Module(LoRaGWMac);
 
 LoRaGWMac::~LoRaGWMac()
 {
-    cancelAndDelete(dutyCycleTimer);    
+    cancelAndDelete(dutyCycleTimer);
+    cancelAndDelete(sendMessageFromQueue);   
 }
 
 void LoRaGWMac::initialize(int stage)
@@ -51,6 +52,7 @@ void LoRaGWMac::initialize(int stage)
             address.setAddress(addressString);
         GW_USED_TIME = registerSignal("GW_USED_TIME");
         GW_TRANSMITTED_PACKET = registerSignal("GW_TRANSMITTED_PACKET");
+        sendMessageFromQueue = new cMessage("Send message from queue");
     }
     else if (stage == INITSTAGE_LINK_LAYER) {
         radio->setRadioMode(IRadio::RADIO_MODE_TRANSCEIVER);
@@ -92,45 +94,104 @@ InterfaceEntry *LoRaGWMac::createInterfaceEntry()
 void LoRaGWMac::handleSelfMessage(cMessage *msg)
 {
     if(msg == dutyCycleTimer) waitingForDC = false;
+    if(msg == sendMessageFromQueue){
+        sendDown(sendingQueue.front().frame);
+        sendingQueue.pop_front();
+        if(!sendingQueue.empty()) scheduleAt((sendingQueue.front()).sendingTime,sendMessageFromQueue);
+    }
 }
 
 void LoRaGWMac::handleUpperPacket(cPacket *msg)
 {
-    if(waitingForDC == false)
-    {
+    if(sendingQueue.empty()){
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
         frame->removeControlInfo();
+        simtime_t sendingTime = frame->getSendingTime();
+        
+        int PayloadLength = frame->getPayloadLength();
+        if(PayloadLength == 0)
+            PayloadLength = 20;
         LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
         ctrl->setSrc(address);
         ctrl->setDest(frame->getReceiverAddress());
         frame->setControlInfo(ctrl);
-        sendDown(frame);
-        waitingForDC = true;
-        double delta;
-        int PayloadLength = frame->getPayloadLength();
-        if(PayloadLength == 0)
-            PayloadLength = 20;
-        delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-        // if(frame->getLoRaSF() == 7) delta = 0.61696;
-        // if(frame->getLoRaSF() == 8) delta = 1.23392;
-        // if(frame->getLoRaSF() == 9) delta = 2.14016;
-        // if(frame->getLoRaSF() == 10) delta = 4.28032;
-        // if(frame->getLoRaSF() == 11) delta = 7.24992;
-        // if(frame->getLoRaSF() == 12) delta = 14.49984;
-        scheduleAt(simTime() + (delta*10), dutyCycleTimer);
+        
+        double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+        sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame);
+        scheduleAt(sendingTime,sendMessageFromQueue);
+
         GW_forwardedDown++;
         usedTimes[3] = usedTimes[3] + delta;        
         emit(GW_USED_TIME,delta);
+        
         std::string addrStrwithId = (frame->getReceiverAddress()).str();
         addrStrwithId += ":";
         addrStrwithId += std::to_string(frame->getSequenceNumber());
         emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
+    }else{
+        LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
+        frame->removeControlInfo();
+        simtime_t sendingTime = frame->getSendingTime();
+
+        if(sendingQueue.back().freeAfter <= sendingTime){
+            std::cout << "I scheduled more" << std::endl;
+            int PayloadLength = frame->getPayloadLength();
+            if(PayloadLength == 0)
+                PayloadLength = 20;
+            LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
+            ctrl->setSrc(address);
+            ctrl->setDest(frame->getReceiverAddress());
+            frame->setControlInfo(ctrl);
+        
+            double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+            sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame);
+            
+            GW_forwardedDown++;
+            usedTimes[3] = usedTimes[3] + delta;        
+            emit(GW_USED_TIME,delta);
+        
+            std::string addrStrwithId = (frame->getReceiverAddress()).str();
+            addrStrwithId += ":";
+            addrStrwithId += std::to_string(frame->getSequenceNumber());
+            emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
+        }
+        else delete msg;
     }
-    else
-    {
-        GW_droppedDC++;
-        delete msg;
-    }
+    // if(waitingForDC == false)
+    // {
+    //     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
+    //     frame->removeControlInfo();
+    //     LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
+    //     ctrl->setSrc(address);
+    //     ctrl->setDest(frame->getReceiverAddress());
+    //     frame->setControlInfo(ctrl);
+    //     sendDown(frame);
+    //     waitingForDC = true;
+    //     double delta;
+    //     int PayloadLength = frame->getPayloadLength();
+    //     if(PayloadLength == 0)
+    //         PayloadLength = 20;
+    //     delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+    //     // if(frame->getLoRaSF() == 7) delta = 0.61696;
+    //     // if(frame->getLoRaSF() == 8) delta = 1.23392;
+    //     // if(frame->getLoRaSF() == 9) delta = 2.14016;
+    //     // if(frame->getLoRaSF() == 10) delta = 4.28032;
+    //     // if(frame->getLoRaSF() == 11) delta = 7.24992;
+    //     // if(frame->getLoRaSF() == 12) delta = 14.49984;
+    //     scheduleAt(simTime() + (delta*10), dutyCycleTimer);
+    //     GW_forwardedDown++;
+    //     usedTimes[3] = usedTimes[3] + delta;        
+    //     emit(GW_USED_TIME,delta);
+    //     std::string addrStrwithId = (frame->getReceiverAddress()).str();
+    //     addrStrwithId += ":";
+    //     addrStrwithId += std::to_string(frame->getSequenceNumber());
+    //     emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
+    // }
+    // else
+    // {
+    //     GW_droppedDC++;
+    //     delete msg;
+    // }
 }
 
 // LAKSH: Filtering of packets has been stopped
@@ -147,9 +208,8 @@ void LoRaGWMac::handleLowerPacket(cPacket *msg)
     // sendUp(frame);
     if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
         sendUp(frame);
-    else{
+    else
         delete frame;
-    }
 }
 
 void LoRaGWMac::sendPacketBack(LoRaMacFrame *receivedFrame)
@@ -186,6 +246,14 @@ DevAddr LoRaGWMac::getAddress()
 std::string LoRaGWMac::str() const
 {
     return "LoRaGWMac" + address.str(); 
+}
+
+simtime_t LoRaGWMac::getTimeForWhenNextMessageIsPossible() const
+{
+    if(!sendingQueue.empty())
+        return (sendingQueue.back()).freeAfter;
+    else
+        return 0;
 }
 
 }

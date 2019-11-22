@@ -56,6 +56,7 @@ class receivedPacket
 {
 public:
     LoRaMacFrame* rcvdPacket;
+    simtime_t timeToSend;
     cMessage* endOfWaiting;
     std::vector<std::tuple<L3Address, double, double>> possibleGateways; // <address, sinr, rssi>
 };
@@ -92,7 +93,7 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     void updateKnownNodes(LoRaMacFrame* pkt);
     void addPktToProcessingTable(LoRaMacFrame* pkt);
     void processScheduledPacket(cMessage* selfMsg);
-    void evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW);
+    void evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW, simtime_t timeToSend);
     void receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details) override;
     bool evaluateADRinServer;
     void sendBackDownlink(LoRaMacFrame* frame,L3Address pickedGateway);

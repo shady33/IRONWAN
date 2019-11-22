@@ -139,7 +139,7 @@ endif
 # >>>
 # <<<
 #------------------------------------------------------------------------------
-
+# -fsanitize=address -fno-omit-frame-pointer
 # Main target
 all: $(TARGET_DIR)/$(TARGET)
 

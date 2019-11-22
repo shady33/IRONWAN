@@ -59,7 +59,7 @@ void SimpleLoRaApp::initialize(int stage)
         seqeuenceNumber = 0;
         first = true;
         success = false;
-
+        numberOfAcks = 0;
         sensorNumber = DevAddr::generateSensorNumber();
     }
     else if (stage == INITSTAGE_APPLICATION_LAYER) {
@@ -132,6 +132,9 @@ std::pair<double,double> SimpleLoRaApp::generateUniformCircleCoordinates(double 
 
 void SimpleLoRaApp::finish()
 {
+    std::cout << "Number of generated packets:" << sentPackets << std::endl;
+    std::cout << "Number of acks:" << numberOfAcks << std::endl;
+    std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
     cModule *host = getContainingNode(this);
 //    StationaryMobility *mobility = check_and_cast<StationaryMobility *>(host->getSubmodule("mobility"));
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
@@ -254,9 +257,11 @@ void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(retryLimit > 1){
+        numberOfAcks += 1;
         cancelEvent(retryMeasurements);
         e2edelay.record(simTime()-startTime);
         retransmits.record(noOfRetransmits);
+        totalNoOfRetransmits += noOfRetransmits;
         noOfRetransmits = 0;
     }
     if(packet->getKind() == DATADOWN){

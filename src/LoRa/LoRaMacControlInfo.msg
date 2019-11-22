@@ -40,4 +40,5 @@ class LoRaMacControlInfo {
     int NumberOfFrames;
     int PayloadLength;
     bool ConfirmedMessage;
+    simtime_t timeToSend;
 }

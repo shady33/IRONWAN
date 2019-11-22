@@ -47,6 +47,7 @@ void NeighbourTalker::initialize(int stage)
             scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
             // scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
         }
+        startUDP();
     }
 }
 
@@ -54,7 +55,7 @@ void NeighbourTalker::startUDP()
 {
     socket.setOutputGate(gate("udpOut"));
     const char *localAddress = par("localAddress");
-    socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), 2500);
+    socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), 3333);
 
     std::string gwAddrsString;
     std::stringstream ss;
@@ -62,7 +63,7 @@ void NeighbourTalker::startUDP()
          ss << "loRaGWs[" << i << "] ";
     gwAddrsString = ss.str();
     const char *gwAddrsNew = gwAddrsString.c_str();
-
+ 
     cStringTokenizer tokenizerGW(gwAddrsNew);
     const char *tokenGW;
 
@@ -88,22 +89,58 @@ void NeighbourTalker::handleMessage(cMessage *msg)
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
         handleLowerLayer(PK(msg));
-    }else if(msg == transmitPingMessage){
-        EV << "Time to transmit a ping message" << endl;
-        transmitPing();
-        scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
-    }else if(msg == checkAnyUnsentMessages){
-        EV << "Time to transmit a ping message" << endl;
-        handleDownlinkQueue();
-        scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
-    }   
+    }else if(msg->arrivedOn("udpIn")){
+        EV << "Received Request from neighbour" << endl;
+        canIHandleThisMessage(PK(msg));
+        return;
+    }
+
+    if(msg->isSelfMessage()){
+        if(msg == transmitPingMessage){
+            EV << "Time to transmit a ping message" << endl;
+            transmitPing();
+            scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
+        }else if(msg == checkAnyUnsentMessages){
+            EV << "Time to transmit a ping message" << endl;
+            handleDownlinkQueue();
+            scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
+        }
+    }
 }
 
 void NeighbourTalker::finish()
 {
     for(auto& elem: downlinkList){
-        delete elem.pkt;
+        delete elem.frame;
     }
+}
+
+void NeighbourTalker::canIHandleThisMessage(cPacket* pkt)
+{
+    bool deletePacket = true;
+
+    LoRaMacFrame *frame = check_and_cast<LoRaMacFrame*>(pkt);
+
+    LoRaGWMac *loRaGwMac = check_and_cast<LoRaGWMac *>((getParentModule()->getSubmodule("LoRaGWNic"))->getSubmodule("mac"));
+    simtime_t freeAfter = loRaGwMac->getTimeForWhenNextMessageIsPossible();
+    if (freeAfter == 0 || freeAfter < frame->getSendingTime()){
+        // This can be scheduled
+        auto iter = ReceivedPacketsList->find(frame->getReceiverAddress());
+        // Do I know this node?
+        if(iter != ReceivedPacketsList->end()){
+            auto insertionTime = (iter->second).insertionTime;
+            // Have I seen the node in last 2 seconds?
+            if(simTime() - insertionTime < 2){
+                send(pkt,"lowerLayerOut");
+                deletePacket = false;
+            }
+        }   
+    }
+    if(deletePacket) delete pkt;
+    // {
+        // std::cout << "Cannot handle" << frame->getReceiverAddress() << ":" << frame->getSequenceNumber() << std::endl;
+        // delete pkt;
+    // }
 }
 
 void NeighbourTalker::handleDownlinkQueue()
@@ -122,17 +159,21 @@ void NeighbourTalker::handleDownlinkQueue()
     
         if((*it).sequenceNumber == sequenceNumberInList){
             // The message was added to queue and broadcast by the node
-            delete (*it).pkt; 
+            delete (*it).frame; 
             downlinkList.erase(it++);
          }else{
             if(simTime() > (*it).deadByTime){
                 std::cout << "Past Dead By time, bye bye!" << std::endl;
-                delete (*it).pkt; 
+                delete (*it).frame; 
                 downlinkList.erase(it++); 
             }else{
                 if(simTime() - (*it).addedToQueue > 0.1){
-                    std::cout << "Time to forward and delete message" << std::endl;;
-                    delete (*it).pkt; 
+                    EV << "Time to forward and delete message" << endl;
+                    auto frame = (*it).frame;
+                    for(auto gw: gwAddresses){
+                        socket.sendTo(frame->dup(),gw,3333);
+                    }
+                    delete (*it).frame; 
                     downlinkList.erase(it++); 
                 }
             }
@@ -168,6 +209,7 @@ void NeighbourTalker::handleLowerLayer(cPacket* pkt)
 void NeighbourTalker::handleLoRaFrame(cPacket *pkt)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(pkt);
+    frame->removeControlInfo();
     if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
         // LAKSH: This is an uplink message from nodes for LoRa gateways 
         // or they are ping messages from neighbouring gateways.
@@ -213,7 +255,7 @@ void NeighbourTalker::handleLoRaFrame(cPacket *pkt)
 
         if(frame->getMsgType() == ACK_ADR_PACKET){
             // std::cout << getParentModule()->str() << frame->getReceiverAddress() << " " << frame->getMsgType() << std::endl;
-            downlinkList.emplace_back(simTime(),simTime(),frame->getSequenceNumber(),frame->getReceiverAddress(),pkt);
+            downlinkList.emplace_back(simTime(),frame->getSendingTime(),frame->getSequenceNumber(),frame->getReceiverAddress(),frame);
         }else{
            delete pkt; 
         }

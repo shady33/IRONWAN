@@ -208,10 +208,13 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
     {
         receivedPacket rcvPkt;
         rcvPkt.rcvdPacket = pkt;
+        rcvPkt.timeToSend = simTime() + 1.9;
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
-        scheduleAt(simTime() + 1.8, rcvPkt.endOfWaiting); //1.2 // 1.8
+        // LAKSH: Changing from 1.8 to 0.5 so that gateways get messages as
+        // soon as possible
+        scheduleAt(simTime() + 0.5, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
 }
@@ -245,7 +248,7 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
         counterOfReceivedPackets++;
     }
     receivedRSSI.collect(frame->getRSSI());
-    evaluateADR(frame, pickedGateway, SNIRinGW, RSSIinGW);
+    evaluateADR(frame, pickedGateway, SNIRinGW, RSSIinGW, receivedPackets[packetNumber].timeToSend);
     delete receivedPackets[packetNumber].rcvdPacket;
     delete selfMsg;
     receivedPackets.erase(receivedPackets.begin()+packetNumber);
@@ -275,7 +278,8 @@ void NetworkServerApp::sendBackDownlink(LoRaMacFrame* frame, L3Address pickedGat
     sequenceNumber = sequenceNumber + 1;
     socket.sendTo(response, pickedGateway, destPort);
 }
-void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW)
+
+void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW, simtime_t timeToSend)
 {
     bool sendADR = false;
     bool sendADRAckRep = false;
@@ -400,6 +404,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         sentMsgs++;
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
+        frameToSend->setSendingTime(timeToSend);
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }else if(sendACK){
         AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
@@ -419,7 +424,9 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         sentMsgs++;
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
-	socket.sendTo(frameToSend, pickedGateway, destPort);
+
+        frameToSend->setSendingTime(timeToSend);
+        socket.sendTo(frameToSend, pickedGateway, destPort);
     }
     // else{
     //     sendBackDownlink(pkt,pickedGateway);

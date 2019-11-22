@@ -5,12 +5,13 @@ import inet.node.ethernet.Eth1G;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import inet.node.internetcloud.InternetCloud;
+import loranetwork.AeseNeighbours.LoRaAeseGW;
 import loranetwork.LoRaPhy.LoRaMedium;
 import loranetwork.LoraNode.AeseLoRaActuatorNode;
 import loranetwork.LoraNode.AeseLoRaNode;
 import loranetwork.LoraNode.LoRaGW;
 import loranetwork.LoraNode.LoRaNode;
-import loranetwork.AeseNeighbours.LoRaAeseGW;
+
 
 @license(LGPL);
 network LoRaNetworkTest

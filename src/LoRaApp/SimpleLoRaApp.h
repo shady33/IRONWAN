@@ -90,7 +90,9 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         int ADR_ACK_DELAY = 32; //32;
         bool sendNextPacketWithADRACKReq = false;
         void increaseSFIfPossible();
-	bool success;
+        bool success;
+        int numberOfAcks; 
+        int totalNoOfRetransmits;
     public:
         SimpleLoRaApp() {}
         virtual ~SimpleLoRaApp();

@@ -29,6 +29,7 @@
 #include "../misc/cSimulinkRTScheduler.h"
 #include "../LoRaApp/AeseAppPacket_m.h"
 #include "SupportedProtocols.h"
+#include "../LoRa/LoRaGWMac.h"
 
 namespace inet {
 
@@ -65,10 +66,10 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
         simtime_t deadByTime;
         int sequenceNumber;
         DevAddr addr;
-        cPacket* pkt;
+        LoRaMacFrame* frame;
         DownlinkPacket() {}
-        DownlinkPacket(simtime_t addedToQueue, simtime_t deadByTime, int sequenceNumber, DevAddr addr, cPacket* pkt) :
-            addedToQueue(addedToQueue), deadByTime(deadByTime), sequenceNumber(sequenceNumber) , addr(addr), pkt(pkt) {}
+        DownlinkPacket(simtime_t addedToQueue, simtime_t deadByTime, int sequenceNumber, DevAddr addr, LoRaMacFrame* frame) :
+            addedToQueue(addedToQueue), deadByTime(deadByTime), sequenceNumber(sequenceNumber) , addr(addr), frame(frame) {}
     };
 
     struct DevAddr_compare
@@ -108,6 +109,7 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     void handleDownlinkQueue();
     void transmitLoRaMessage();
     void startUDP();
+    void canIHandleThisMessage(cPacket* pkt);
 
   public:
     virtual ~NeighbourTalker();

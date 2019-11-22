@@ -16,7 +16,6 @@
 package loranetwork.AeseNeighbours;
 
 import inet.linklayer.contract.IWiredNic;
-import inet.linklayer.ieee80211.mac.Ieee80211CompatibleMac;
 import inet.mobility.static.StationaryMobility;
 import inet.networklayer.common.InterfaceTable;
 import inet.networklayer.contract.INetworkLayer;
@@ -79,15 +78,15 @@ module LoRaAeseGW
         packetForwarder.udpIn <-- udp.appOut++;
         LoRaGWNic.upperLayerOut --> packetDuplicator.layerIn++;
         packetDuplicator.layerOut++ --> LoRaGWNic.upperLayerIn;
-		
-		packetForwarder.lowerLayerOut --> packetDuplicator.layerIn++;
-		neighbourTalker.lowerLayerOut --> packetDuplicator.layerIn++;
-		packetForwarder.lowerLayerIn <-- packetDuplicator.layerOut++;
-		neighbourTalker.lowerLayerIn <-- packetDuplicator.layerOut++;
-		
-		neighbourTalker.udpOut --> udp.appIn++;
+
+        packetForwarder.lowerLayerOut --> packetDuplicator.layerIn++;
+        neighbourTalker.lowerLayerOut --> packetDuplicator.layerIn++;
+        packetForwarder.lowerLayerIn <-- packetDuplicator.layerOut++;
+        neighbourTalker.lowerLayerIn <-- packetDuplicator.layerOut++;
+
+        neighbourTalker.udpOut --> udp.appIn++;
         neighbourTalker.udpIn <-- udp.appOut++;
-		
+
         for i=0..sizeof(ethg)-1 {
             ethg[i] <--> { @display("m=s"); } <--> eth[i].phys;
             eth[i].upperLayerOut --> networkLayer.ifIn++;
