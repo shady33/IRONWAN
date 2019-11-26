@@ -24,7 +24,7 @@ def readAndPrint(filename):
 
     attributes = ['nodes','load','gateways','numberOfNS']
     scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel 3 used time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes']
-    vectorsToRead = ['NumberOfRetransmissions']
+    vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
     header = []
     tabledCreated = False
@@ -87,6 +87,6 @@ if __name__ == '__main__':
             fileToWrite.write("\n")
             headerWritten = True
         else:
-            fileToWrite.write("\n".join(fileToWrite[1:]))
+            fileToWrite.write("\n".join(allDataForFile[1:]))
             fileToWrite.write("\n")
 
