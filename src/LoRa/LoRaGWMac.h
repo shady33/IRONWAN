@@ -62,7 +62,8 @@ public:
     virtual ~LoRaGWMac();
     simsignal_t GW_USED_TIME;
     simsignal_t GW_TRANSMITTED_PACKET;
-    
+    simtime_t freeAfter;    
+
 protected:
     DevAddr address;
 

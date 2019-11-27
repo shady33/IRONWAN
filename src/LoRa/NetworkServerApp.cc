@@ -401,6 +401,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         // frameToSend->setLoRaSF(pkt->getLoRaSF());
         frameToSend->setLoRaSF(9);
         frameToSend->setLoRaBW(pkt->getLoRaBW());
+        frameToSend->setLoRaCR(1);
         sentMsgs++;
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
@@ -421,6 +422,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         // frameToSend->setLoRaSF(pkt->getLoRaSF());
         frameToSend->setLoRaSF(9);
         frameToSend->setLoRaBW(pkt->getLoRaBW());
+        frameToSend->setLoRaCR(1);
         sentMsgs++;
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
