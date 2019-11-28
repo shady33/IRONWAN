@@ -38,16 +38,17 @@ void NeighbourTalker::initialize(int stage)
         transmitPingMessage = new cMessage("Time To Transmit Ping Message");
         currentProtocol = LORA;
         numberOfGateways = par("numberOfGateways");
-        getSimulation()->getSystemModule()->subscribe("GW_TRANSMITTED_PACKET", this);
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
         ReceivedPacketsList = new ReceivedPacketsMap();
         DownlinkLastDropRequestList = new DownlinkLastDropRequest();
         checkAnyUnsentMessages = new cMessage("Check if any unsent messages in queue");
         if(AeseGWEnabled){
+            getSimulation()->getSystemModule()->subscribe("GW_TRANSMITTED_PACKET", this);
             scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
+            startUDP();
             // scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
         }
-        startUDP();
+        
     }
 }
 
@@ -265,6 +266,7 @@ void NeighbourTalker::handleLoRaFrame(cPacket *pkt)
 
 void NeighbourTalker::receiveSignal(cComponent *source, simsignal_t signalID, const char* s, cObject* details )
 {
+    if(!AeseGWEnabled) return;
     if(!strcmp(getSignalName(signalID),"GW_TRANSMITTED_PACKET")){
         std::string receivedString = s;
         std::string addrstring = receivedString.substr(0,11);
