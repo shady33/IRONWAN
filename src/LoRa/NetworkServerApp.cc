@@ -138,7 +138,7 @@ void NetworkServerApp::finish()
         recordScalar("DER SF12", double(counterOfReceivedPacketsPerSF[5]) / counterOfSentPacketsFromNodesPerSF[5]);
     else
         recordScalar("DER SF12", 0);
-    recordScalar("Sent ADR messages", sentMsgs);
+    recordScalar("SentADRmessages", sentMsgs);
 }
 
 bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)

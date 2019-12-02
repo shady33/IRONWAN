@@ -65,10 +65,10 @@ void LoRaGWMac::finish()
     recordScalar("GW_forwardedDown", GW_forwardedDown);
     recordScalar("GW_droppedDC", GW_droppedDC);
 
-    recordScalar("Channel 0 used time", usedTimes[0]);
-    recordScalar("Channel 1 used time", usedTimes[1]);
-    recordScalar("Channel 2 used time", usedTimes[2]);
-    recordScalar("Channel 3 used time", usedTimes[3]);       
+    recordScalar("Channel_0_used_time", usedTimes[0]);
+    recordScalar("Channel_1_used_time", usedTimes[1]);
+    recordScalar("Channel_2_used_time", usedTimes[2]);
+    recordScalar("Channel_3_used_time", usedTimes[3]);
 }
 
 
