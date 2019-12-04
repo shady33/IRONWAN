@@ -81,14 +81,18 @@ OBJS = \
     $O/src/LoRa/LoRaMacControlInfo_m.o \
     $O/src/LoRa/LoRaMacFrame_m.o \
     $O/src/LoRaApp/AeseAppPacket_m.o \
-    $O/src/LoRaPhy/LoRaRadioControlInfo_m.o
+    $O/src/LoRaPhy/LoRaRadioControlInfo_m.o \
+    $O/src/AeseNeighbours/NeighbourTalkerMessage_m.o \
+    $O/src/AeseNeighbours/DecideWhichNode_m.o
 
 # Message files
 MSGFILES = \
     src/LoRa/LoRaMacControlInfo.msg \
     src/LoRa/LoRaMacFrame.msg \
     src/LoRaApp/AeseAppPacket.msg \
-    src/LoRaPhy/LoRaRadioControlInfo.msg
+    src/LoRaPhy/LoRaRadioControlInfo.msg \
+    src/AeseNeighbours/NeighbourTalkerMessage.msg \
+    src/AeseNeighbours/DecideWhichNode.msg
 
 # SM files
 SMFILES =

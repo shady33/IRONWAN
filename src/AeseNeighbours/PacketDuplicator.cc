@@ -45,7 +45,8 @@ void PacketDuplicator::broadcastFrame(cMessage *msg)
     for (int i = 0; i < numPorts; ++i) {
         if(i != idx){
             cMessage *clone = msg->dup();
-            clone->setControlInfo((msg->getControlInfo())->dup());
+            if (msg->getControlInfo())
+                clone->setControlInfo((msg->getControlInfo())->dup());
             send(clone, "layerOut", i);
         }
     }

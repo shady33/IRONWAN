@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef __LORANETWORK_PACKETFORWARDER_H_
 #define __LORANETWORK_PACKETFORWARDER_H_
@@ -20,22 +20,31 @@
 #include "RadioControlInfo_m.h"
 #include <vector>
 #include "inet/common/INETDefs.h"
-
-#include "LoRaMacControlInfo_m.h"
-#include "../LoRa/LoRaMacFrame_m.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "../misc/cSimulinkRTScheduler.h"
-#include "../LoRaApp/AeseAppPacket_m.h"
 #include "SupportedProtocols.h"
-#include "../LoRa/LoRaGWMac.h"
+#include "LoRaGWMac.h"
+
+#include "LoRaMacControlInfo_m.h"
+#include "LoRaMacFrame_m.h"
+#include "NeighbourTalkerMessage_m.h"
+#include "AeseAppPacket_m.h"
+#include "DecideWhichNode_m.h"
 
 namespace inet {
 
 class INET_API NeighbourTalker : public cSimpleModule, public cListener
 {
   protected:
+
+    enum AeseGWModes{
+        NO_NEIGHBOUR,
+        ALL_NEIGHBOUR,
+        NEIGHBOUR_WITH_BIDS
+    };
+
     struct ReceivedPacket
     {
         // DevAddr is used as the key to access the Received Packet
@@ -43,9 +52,10 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
         int lastSeqNo;
         LoRaMacFrame* frame;
         simtime_t insertionTime;
+        double RSSI;
         ReceivedPacket() {}
-        ReceivedPacket(SupportedProtocols protocol,int lastSeqNo, LoRaMacFrame* frame, simtime_t insertionTime) :
-            protocol(protocol), lastSeqNo(lastSeqNo), frame(frame) ,insertionTime(insertionTime) {}
+        ReceivedPacket(SupportedProtocols protocol,int lastSeqNo, LoRaMacFrame* frame, simtime_t insertionTime, double RSSI) :
+            protocol(protocol), lastSeqNo(lastSeqNo), frame(frame), insertionTime(insertionTime), RSSI(RSSI) {}
     };
 
     struct GatewayInfo
@@ -83,11 +93,18 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     typedef std::map<DevAddr, GatewayInfo, DevAddr_compare> GatewayNeighbours;
     GatewayNeighbours *GatewayNeighboursList = nullptr;
 
+    struct BidQueue
+    {
+        DevAddr addr;
+        std::list<std::tuple<L3Address,double>> gatewaysThatBid;
+    };
+
   private:
-    bool AeseGWEnabled;
+    AeseGWModes AeseGWMode;
     simtime_t periodicPingInterval;
     cMessage *transmitPingMessage;
     cMessage *checkAnyUnsentMessages;
+    // cMessage *decideWhichNode;
     SupportedProtocols currentProtocol;
 
   protected:
@@ -97,6 +114,12 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     std::list<DownlinkPacket> downlinkList;
     typedef std::map<DevAddr,int, DevAddr_compare> DownlinkLastDropRequest;
     DownlinkLastDropRequest *DownlinkLastDropRequestList = nullptr;
+    LoRaGWMac *loRaGwMac;
+    std::vector<BidQueue> currentBids;
+    DownlinkLastDropRequest *NeighbourDropRequestList = nullptr;
+    long failedBids;
+    long requestedBids;
+    long acceptedBids;
 
   protected:
     virtual void initialize(int stage) override;
@@ -110,6 +133,10 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     void transmitLoRaMessage();
     void startUDP();
     void canIHandleThisMessage(cPacket* pkt);
+    void sendConfirmationToNeighbour(cPacket* pkt);
+    void collectBids(L3Address gateway, DevAddr addr, double RSSI);
+    void acceptBid(DevAddr addr);
+    void checkConfirmationAndDelete(DevAddr addr);
 
   public:
     virtual ~NeighbourTalker();

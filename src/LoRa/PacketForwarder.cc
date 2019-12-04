@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "PacketForwarder.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
@@ -93,7 +93,7 @@ void PacketForwarder::initialize(int stage)
             rtScheduler = check_and_cast<cSimulinkRTScheduler *>(getSimulation()->getScheduler());
             rtScheduler->setInterfaceModule(this, rtEvent, recvBuffer, 4000, &numRecvBytes,true,false);
         }
-   
+
         for(int i = 0; i < 8; i++)
             sendDownlink[i] = new cMessage("sendDownlink");
 
@@ -107,7 +107,7 @@ void PacketForwarder::initialize(int stage)
             }
             dataExpectedfromMiniSlot = false;
             for(int i=0;i<8;i++){
-                dataQueues[i] = 0; 
+                dataQueues[i] = 0;
             }
         }
 
@@ -232,7 +232,7 @@ void PacketForwarder::processPacketMatlab()
     while(numRecvBytes > 0){
 
         // double trigger[numberOfSubSystems];
-        double values[numberOfAeseActuatorNodes]; 
+        double values[numberOfAeseActuatorNodes];
 
         int totalPacketSize = (numberOfSubSystems * 8) + (numberOfAeseActuatorNodes * 8);
         if(numRecvBytes >= totalPacketSize){
@@ -246,7 +246,7 @@ void PacketForwarder::processPacketMatlab()
                 //// std::cout << trigger[i] << " ";
             }
             //// std::cout << std::endl;
-              
+
             for(int i = 0; i < numberOfAeseActuatorNodes; i++){
                 union{
                     double d;
@@ -267,7 +267,7 @@ void PacketForwarder::processPacketMatlab()
                 request->setActuationSignal(la,values[la]);
             }
             actuationQueue.insert(request);
-            
+
             numRecvBytes -= totalPacketSize;
         }else{
             // std::cout << "Setting to zero" << std::endl;
@@ -304,7 +304,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
         // if(frame->getDataInThisFrame()){
         //     miniSlotsWithDataExpected[frame->getMyMiniSlot()] = miniSlotsWithDataExpected[frame->getMyMiniSlot()] + 1;
         //     dataExpectedfromMiniSlot = true;
-        // } 
+        // }
     }
     else if(packettype == UPLINKDATASLOT){
         // std::cout << "Received frame with data " << std::endl;
@@ -346,7 +346,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
         EV << "Sending to server" << destAddr << endl;
         if (frame->getControlInfo())
             delete frame->removeControlInfo();
-        
+
         if(enableActuation){
             AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
             if(sendImmediateActuation){
@@ -377,7 +377,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
                 std::string line;
                 while (std::getline(ss,line,'-'))
                     array.push_back(std::strtol(line.c_str(), 0, 16));
-                
+
                 double d = -array[3] + numberOfAeseActuatorNodes + (packet->getSampleMeasurement()/100) - 0.1; // 10
                 //// std::cout << d << " " << array[3] << " " << packet->getSampleMeasurement() << std::endl;
                 if(d<-1){
@@ -404,10 +404,10 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
 }
 
 void PacketForwarder::scheduleDownlink(int val,cPacket *pk)
-{   
+{
     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(pk);
     AeseAppPacket *request = check_and_cast<AeseAppPacket *>(frame->decapsulate());
-    
+
     AeseAppPacket *downlink = new AeseAppPacket("DownlinkFrame");
     if(schedulerClass == "cSimulinkRTScheduler"){
         downlink->setKind(DATADOWN);
@@ -432,7 +432,7 @@ void PacketForwarder::scheduleDownlink(int val,cPacket *pk)
 }
 
 void PacketForwarder::sendPacket(int val)
-{   
+{
     // std::cout << "Sending message from GW to: " << frameCopy[val]->getReceiverAddress() << " at time " << simTime() << std::endl;
 
     cnt &= ~(1 << val);
@@ -467,11 +467,11 @@ void PacketForwarder::finish()
     recordScalar("Sent Messages by Gateway",sentMsgs);
     recordScalar("UniqueNodesCount",knownNodes.size());
     recordScalar("AverageUsedTimePerNode", knownNodes.size()/totalUsedTimes);
-    recordScalar("DownlinkTotalUsedTimes", totalUsedTimes);   
+    recordScalar("DownlinkTotalUsedTimes", totalUsedTimes);
 }
 
 void PacketForwarder::sendActuationMessage(){
-    
+
     units::values::Hz loraCF=inet::units::values::Hz(869587500);
     units::values::Hz loraBW=inet::units::values::Hz(125000);
 
@@ -490,7 +490,7 @@ void PacketForwarder::sendActuationMessage(){
 
         // std::cout << "Sending Actuation message " << std::endl;
         frameToSend->setMsgType(ACTUATION);
-        
+
         frameCopy[1] = frameToSend;
         sendPacket(1);
     }
@@ -514,13 +514,13 @@ void PacketForwarder::sendActuationMessageNow(AeseAppPacket* appPacket)
 
     // std::cout << "Sending Actuation message " << std::endl;
     frameToSend->setMsgType(ACTUATION);
-    
+
     frameCopy[1] = frameToSend;
     sendPacket(1);
 }
 
 void PacketForwarder::sendFeedbackMessage(bool first){
-    
+
     units::values::Hz loraCF;
     if(dataOnSameChannel){
         loraCF=inet::units::values::Hz(868000000);
@@ -547,7 +547,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
         frameToSend->setMsgType(FEEDBACK);
         frameToSend->setDTQ(DTQ);
         frameToSend->setCRQ(CRQ);
-        
+
         frameCopy[0] = frameToSend;
         scheduleAt(simTime() + timeToStartSignal, sendDownlink[0]);
         scheduleAt(simTime() + timeToStartSignal + 0.08 + frameDuration,sendFeedback);
@@ -568,7 +568,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
 
         if(CRQ > 0)
             CRQ = CRQ - 1;
-       
+
         int totalMiniSlots = 0;
 
         if(dataOnSameChannel){
@@ -579,7 +579,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
                 }else if(dataSlotInformation[i] == 1){
                     frameToSend->setN(i,SUCCESS);
                     if(dataExpectedfromMiniSlot && (miniSlotsWithDataExpected[i] > -1)) {
-                        miniSlotInformation[miniSlotsWithDataExpected[i]] = miniSlotInformation[miniSlotsWithDataExpected[i]] - 1;   
+                        miniSlotInformation[miniSlotsWithDataExpected[i]] = miniSlotInformation[miniSlotsWithDataExpected[i]] - 1;
                     }
                 }else if(dataSlotInformation[i] > 1){
                     frameToSend->setN(i,COLLISION);
@@ -588,7 +588,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
                 miniSlotsWithDataExpected[i] = -1;
             }
             dataExpectedfromMiniSlot = false;
-            
+
             for(int i = 0;i < noOfMslots; i++){
                 // std::cout << slotInformation[i];
                 if(miniSlotInformation[i] == 0){
@@ -637,7 +637,7 @@ void PacketForwarder::sendFeedbackMessage(bool first){
             // std::cout << "Sending frame with " << dataQueues[0] << " " << dataQueues[1] << " " << dataQueues[2] << std::endl;
         }
         frameToSend->setMsgType(FEEDBACK);
-        CRQVector.record(CRQ); 
+        CRQVector.record(CRQ);
         DTQVector.record(dataQueues[0] + dataQueues[1] + dataQueues[2] + dataQueues[3] + dataQueues[4] + dataQueues[5] + dataQueues[6] + dataQueues[7]);
         MiniSlots.record(totalMiniSlots);
         frameCopy[0] = frameToSend;

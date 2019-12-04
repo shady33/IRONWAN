@@ -4,7 +4,7 @@ import numpy as np
 import sys
 from prettytable import PrettyTable
 import concurrent.futures
-import statistics 
+import statistics
 
 def parse_if_number(s):
     try: return float(s)
@@ -22,8 +22,8 @@ def readAndPrint(filename):
     'vecvalue': parse_ndarray
     })
 
-    attributes = ['nodes','load','gateways','numberOfNS']
-    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','NeighbourEnabled']
+    attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode']
+    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes']
     vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
     header = []

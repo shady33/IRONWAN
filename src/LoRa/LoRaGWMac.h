@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef LORA_LORAGWMAC_H_
 #define LORA_LORAGWMAC_H_
@@ -34,10 +34,11 @@ protected:
     {
         simtime_t sendingTime;
         simtime_t freeAfter;
+        DevAddr addr;
         LoRaMacFrame* frame;
         LoRaSendQueue() {}
-        LoRaSendQueue(simtime_t sendingTime, simtime_t freeAfter, LoRaMacFrame* frame) :
-            sendingTime(sendingTime), freeAfter(freeAfter), frame(frame) {}
+        LoRaSendQueue(simtime_t sendingTime, simtime_t freeAfter, DevAddr addr,LoRaMacFrame* frame) :
+            sendingTime(sendingTime), freeAfter(freeAfter), addr(addr),frame(frame) {}
     };
 
 public:
@@ -58,11 +59,12 @@ public:
     void sendPacketBack(LoRaMacFrame *receivedFrame);
     void createFakeLoRaMacFrame();
     simtime_t getTimeForWhenNextMessageIsPossible() const;
-    virtual DevAddr getAddress();
+    void popDevAddr(DevAddr addr);
+    virtual DevAddr getAddress() const;
     virtual ~LoRaGWMac();
     simsignal_t GW_USED_TIME;
     simsignal_t GW_TRANSMITTED_PACKET;
-    simtime_t freeAfter;    
+    simtime_t freeAfter;
 
 protected:
     DevAddr address;
