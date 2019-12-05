@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include <SimpleLoRaApp.h>
 //#include "inet/mobility/static/StationaryMobility.h"
@@ -24,7 +24,7 @@ SimpleLoRaApp::~SimpleLoRaApp()
 {
     cancelAndDelete(rtEvent);
     cancelAndDelete(retryMeasurements);
-    cancelAndDelete(sendMeasurements);    
+    cancelAndDelete(sendMeasurements);
 }
 
 void SimpleLoRaApp::initialize(int stage)
@@ -45,7 +45,7 @@ void SimpleLoRaApp::initialize(int stage)
            mobility->par("initialX").setDoubleValue(coordsValues.first);
            mobility->par("initialY").setDoubleValue(coordsValues.second);
         }
-        
+
         rtEvent = new cMessage("rtEvent");
         retryLimit = par("retryLimit");
 
@@ -68,7 +68,7 @@ void SimpleLoRaApp::initialize(int stage)
         isOperational = (!nodeStatus) || nodeStatus->getState() == NodeStatus::UP;
         if (!isOperational)
             throw cRuntimeError("This module doesn't support starting in node DOWN state");
-        
+
 
         retryMeasurements = new cMessage("retryMeasurements");
         sendMeasurements = new cMessage("sendMeasurements");
@@ -102,9 +102,9 @@ void SimpleLoRaApp::initialize(int stage)
         loRaDC = par("initialLoRaDC").doubleValue();
         loRaUseHeader = par("initialUseHeader");
         evaluateADRinNode = par("evaluateADRinNode");
-        sfVector.setName("SF Vector");
-        tpVector.setName("TP Vector");  
-        
+        sfVector.setName("SFVector");
+        tpVector.setName("TPVector");
+
         // Calculate transmission time according to duty cycle and coding rate
         transmissionTimeTable[0] = (49.408  + loRaCR*7.168) / loRaDC / 10.0; //SF 7
         transmissionTimeTable[1] = (90.624  + loRaCR*12.288) / loRaDC / 10.0; //SF 8
@@ -133,7 +133,7 @@ std::pair<double,double> SimpleLoRaApp::generateUniformCircleCoordinates(double 
 void SimpleLoRaApp::finish()
 {
     // std::cout << "Number of generated packets:" << sentPackets << std::endl;
-    // std::cout << "Number of acks:" << numberOfAcks << std::endl;
+    // std::cout << getParentModule() << numberOfAcks << std::endl;
     // std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
     cModule *host = getContainingNode(this);
 //    StationaryMobility *mobility = check_and_cast<StationaryMobility *>(host->getSubmodule("mobility"));
@@ -163,7 +163,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 
                 // time * std::pow(10,4) + data * std::pow(10,-4) + sign(data) * std::pow(10,-1)
                 double intpart,fractpart,time,sign,value;
-                
+
                 fractpart = std::modf(z.d,&intpart);
                 time = intpart/10000;
                 std::modf(fractpart * 10, &sign);
@@ -213,7 +213,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
         {
             // if(noOfRetransmits == 1)
             //     startTime = simTime();
-            
+
             if(!retryMeasurements->isScheduled())
             {
                 startTime = simTime();
@@ -236,7 +236,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             //     retryMeasurements = new cMessage("retryMeasurements");
             //     scheduleAt(simTime() + uniform(5,7),retryMeasurements);
             // }
-            // Schedule Next send measurements 
+            // Schedule Next send measurements
             double time = timeOnAir(loRaSF, loRaBW, 40, 1)*100;
             do {
                 timeToNextPacket = par("timeToNextPacket");
@@ -342,7 +342,7 @@ void SimpleLoRaApp::sendJoinRequest()
     do{
         freq = inet::units::values::Hz((intuniform(0,2) * 200000) + 868100000);
     }while(loRaCF == freq);
-    
+
     loRaCF = freq;
     //add LoRa control info
     LoRaMacControlInfo *cInfo = new LoRaMacControlInfo;
@@ -358,7 +358,7 @@ void SimpleLoRaApp::sendJoinRequest()
     }else{
         cInfo->setConfirmedMessage(true);
     }
-    
+
     request->setControlInfo(cInfo);
     sfVector.record(loRaSF);
     tpVector.record(loRaTP);
@@ -381,7 +381,7 @@ void SimpleLoRaApp::increaseSFIfPossible()
     if(loRaTP < 14) loRaTP++;
     if(loRaTP >= 14) {
         loRaTP = 14;
-        if(loRaSF < 12){ 
+        if(loRaSF < 12){
             loRaSF++;
         }
     }

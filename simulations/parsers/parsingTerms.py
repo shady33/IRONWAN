@@ -23,7 +23,7 @@ def readAndPrint(filename):
     })
 
     attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode']
-    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes']
+    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids']
     vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
     header = []
@@ -34,7 +34,14 @@ def readAndPrint(filename):
         values = []
         for attr in attributes:
             header.append(attr)
-            values.append(parse_if_number(m3.loc[(m3.attrname.astype(str) == attr) & (m3.run == run)].attrvalue))
+
+            try:
+                value = ((m3.loc[(m3.attrname.astype(str) == attr) & (m3.run == run)].attrvalue).values[0])
+                if type(value) == str:
+                    value = '\'' + value + '\''
+                values.append(value)
+            except:
+                values.append(-1)
 
         for scalar in scalarsToRead:
             header.extend([scalar + '_total',scalar + '_count', scalar + '_average', scalar + '_min', scalar + '_max', scalar + '_stddev'])
@@ -77,6 +84,9 @@ def readAndPrint(filename):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print('Please add the files correctly')
+        sys.exit(0)
     filesToParse = sys.argv[2:]
     fileToWrite = open(sys.argv[1],'w')
     headerWritten = False

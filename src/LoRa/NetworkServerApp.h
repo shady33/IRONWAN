@@ -79,7 +79,8 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     std::string schedulerClass;
     int networkServerNumber;
     int sentMsgs;
-    unsigned long int sequenceNumber;   
+    unsigned long int sequenceNumber;
+    int receivedSomething;
 
   protected:
     virtual void initialize(int stage) override;

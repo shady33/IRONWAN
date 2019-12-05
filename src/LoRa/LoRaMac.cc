@@ -438,7 +438,7 @@ void LoRaMac::turnOnAndSwitch()
     LoRaRadio *loraRadio;
     loraRadio = check_and_cast<LoRaRadio *>(radio);
     loraRadio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
-    loraRadio->setCarrierFrequency(carrierFrequency);  
+    loraRadio->setCarrierFrequency(carrierFrequency);
 }
 
 void LoRaMac::turnOffReceiver()

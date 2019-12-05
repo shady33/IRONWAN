@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "NetworkServerApp.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
@@ -45,7 +45,8 @@ void NetworkServerApp::initialize(int stage)
             counterOfReceivedPacketsPerSF[i] = 0;
             counterOfSentPacketsFromNodesPerSF[i] = 0;
         }
-	sequenceNumber = 0;
+        sequenceNumber = 0;
+        receivedSomething = 0;
     }
 }
 
@@ -64,11 +65,12 @@ void NetworkServerApp::handleMessage(cMessage *msg)
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
         if (simTime() >= getSimulation()->getWarmupPeriod())
         {
-            numOfReceivedPackets++;
+            if((frame->getTransmitterAddress()).getAddressByte(0) == networkServerNumber)
+                numOfReceivedPackets++;
             counterOfReceivedPacketsPerSF[frame->getLoRaSF()-7]++;
         }
         updateKnownNodes(frame);
-        processLoraMACPacket(PK(msg));    
+        processLoraMACPacket(PK(msg));
     }else if (msg->isSelfMessage()) {
         processScheduledPacket(msg);
     }
@@ -206,6 +208,8 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
     }
     if(packetExists == false)
     {
+        if((pkt->getTransmitterAddress()).getAddressByte(0) == networkServerNumber)
+            receivedSomething++;
         receivedPacket rcvPkt;
         rcvPkt.rcvdPacket = pkt;
         rcvPkt.timeToSend = simTime() + 1.9;
@@ -257,7 +261,7 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
 void NetworkServerApp::sendBackDownlink(LoRaMacFrame* frame, L3Address pickedGateway)
 {
 //    AeseAppPacket *request = check_and_cast<AeseAppPacket *>(frame->decapsulate());
-    
+
     AeseAppPacket *downlink = new AeseAppPacket("DownlinkFrame");
     if(schedulerClass == "cSimulinkRTScheduler"){
         downlink->setKind(DATADOWN);
@@ -426,7 +430,6 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         sentMsgs++;
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
-
         frameToSend->setSendingTime(timeToSend);
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }
