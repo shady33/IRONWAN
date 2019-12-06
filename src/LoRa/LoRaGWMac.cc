@@ -103,6 +103,8 @@ void LoRaGWMac::handleSelfMessage(cMessage *msg)
                 PayloadLength = 20;
             double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
             emit(GW_USED_TIME,delta);
+            GW_forwardedDown++;
+            usedTimes[3] = usedTimes[3] + delta;
             sendDown(frame);
             sendingQueue.pop_front();
         }
@@ -128,9 +130,6 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame->getReceiverAddress(),frame);
         scheduleAt(sendingTime,sendMessageFromQueue);
         freeAfter = sendingTime + (delta * 10);
-
-        GW_forwardedDown++;
-        usedTimes[3] = usedTimes[3] + delta;
 
         std::string addrStrwithId = (frame->getReceiverAddress()).str();
         addrStrwithId += ":";
