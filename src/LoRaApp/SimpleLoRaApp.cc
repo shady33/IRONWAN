@@ -241,8 +241,8 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             do {
                 timeToNextPacket = par("timeToNextPacket");
             } while(timeToNextPacket <= time);
-
-            scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
+            if(numberOfPacketsToSend == 0 || numberOfPacketsToSend > sentPackets)
+                scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
         }
         // delete msg;
     }
