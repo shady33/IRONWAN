@@ -167,7 +167,7 @@ void NeighbourTalker::canIHandleThisMessage(cPacket* pkt)
             auto insertionTime = (iter->second).insertionTime;
             // Have I seen the node in last 2 seconds?
             if(simTime() - insertionTime < 2){
-                if(AeseGWMode == NEIGHBOUR_WITH_BIDS) {
+                if(AeseGWMode == NEIGHBOUR_WITH_BIDS || AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM) {
                     sendConfirmationToNeighbour(pkt);
                 }
                 send(pkt->decapsulate(),"lowerLayerOut");
@@ -220,7 +220,7 @@ void NeighbourTalker::handleDownlinkQueue()
                         request->setDeviceAddress((*it).addr);
                         socket.sendTo(request,gw,3333);
                     }
-                    if(AeseGWMode == NEIGHBOUR_WITH_BIDS){
+                    if(AeseGWMode == NEIGHBOUR_WITH_BIDS || AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM){
                         DecideWhichNode *msg = new DecideWhichNode("DecideWhichNodeBidToAccept");
                         msg->setAddr((*it).addr);
                         scheduleAt(simTime() + 0.5, msg);
@@ -371,13 +371,29 @@ void NeighbourTalker::acceptBid(DevAddr addr)
     int idx = -1;
     double RSSIinGW = -99999999999;
     L3Address pickedGateway;
-    for(int i=0;i<currentBids.size();i++){
-        if(currentBids[i].addr == addr){
-            for(auto gw: currentBids[i].gatewaysThatBid){
-                if(RSSIinGW < std::get<1>(gw)) pickedGateway = std::get<0>(gw);
+    if(AeseGWMode == NEIGHBOUR_WITH_BIDS){
+        for(int i=0;i<currentBids.size();i++){
+            if(currentBids[i].addr == addr){
+                for(auto gw: currentBids[i].gatewaysThatBid){
+                    if(RSSIinGW < std::get<1>(gw)) pickedGateway = std::get<0>(gw);
+                }
+                idx = i;
+                break;
             }
-            idx = i;
-            break;
+        }
+    }else if(AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM){
+        for(int i=0;i<currentBids.size();i++){
+            if(currentBids[i].addr == addr){
+                if(currentBids[i].gatewaysThatBid.size() > 0){
+                    int val = intuniform(0,currentBids[i].gatewaysThatBid.size()-1);
+                    int j=0;
+                    for(auto gw: currentBids[i].gatewaysThatBid){
+                        if(j == val)
+                            pickedGateway = std::get<0>(gw);
+                        j++;
+                    }
+                }
+            }
         }
     }
     if(idx != -1){

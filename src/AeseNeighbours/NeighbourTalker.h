@@ -42,7 +42,8 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     enum AeseGWModes{
         NO_NEIGHBOUR,
         ALL_NEIGHBOUR,
-        NEIGHBOUR_WITH_BIDS
+        NEIGHBOUR_WITH_BIDS,
+        NEIGHBOUR_WITH_BIDS_RANDOM
     };
 
     struct ReceivedPacket
