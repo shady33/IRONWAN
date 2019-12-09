@@ -146,6 +146,7 @@ void SimpleLoRaApp::finish()
     recordScalar("sentPackets", sentPackets);
     recordScalar("receivedADRCommands", receivedADRCommands);
     recordScalar("receivedAckMessages", receivedAckMessages);
+    recordScalar("TotalNumberOfRetransmits",totalNoOfRetransmits);
 }
 
 void SimpleLoRaApp::handleMessage(cMessage *msg)
@@ -206,6 +207,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 // retryMeasurements = new cMessage("retryMeasurements");
                 scheduleAt(simTime() + uniform(5,7),retryMeasurements);
             }else{
+                totalNoOfRetransmits += noOfRetransmits;
                 noOfRetransmits = 0;
             }
         }

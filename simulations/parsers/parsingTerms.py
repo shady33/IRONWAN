@@ -23,7 +23,7 @@ def readAndPrint(filename):
     })
 
     attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode']
-    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids','SentADRmessages']
+    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids','SentADRmessages','TotalNumberOfRetransmits']
     vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
     header = []
