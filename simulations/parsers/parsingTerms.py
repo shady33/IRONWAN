@@ -55,7 +55,12 @@ def readAndPrint(filename):
             if val == 0:
                 values.extend([0.0,0.0,0.0,0.0,0.0,0.0])
             else:
-                values.extend([val,count,val/count,min(allVals),max(allVals),statistics.stdev(allVals)])
+                vari = 0
+                try:
+                    vari = statistics.stdev(allVals)
+                except:
+                    pass
+                values.extend([val,count,val/count,min(allVals),max(allVals),vari])
 
         for vector in vectorsToRead:
             header.extend([vector, vector + str('_Count') ,vector + str('_Min'), vector + str('_Max'), vector + str('_Mean'), vector + str('_StdDev')])
