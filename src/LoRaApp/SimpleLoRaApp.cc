@@ -190,7 +190,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                     sendJoinRequest();
                     timeOfLastPacket = time;
                     // retryMeasurements = new cMessage("retryMeasurements");
-                    scheduleAt(simTime() + uniform(5,7),retryMeasurements);
+                    scheduleAt(simTime() + uniform(10,15),retryMeasurements);
                     noOfRetransmits = 1;
                     }
                 }
@@ -205,7 +205,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 sendJoinRequest();
                 noOfRetransmits = noOfRetransmits + 1;
                 // retryMeasurements = new cMessage("retryMeasurements");
-                scheduleAt(simTime() + uniform(5,7),retryMeasurements);
+                scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }else{
                 totalNoOfRetransmits += noOfRetransmits;
                 noOfRetransmits = 0;
@@ -223,7 +223,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 sendJoinRequest();
                 noOfRetransmits = 0;
                 // retryMeasurements = new cMessage("retryMeasurements");
-                scheduleAt(simTime() + uniform(5,7),retryMeasurements);
+                scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }
             // if (simTime() >= getSimulation()->getWarmupPeriod())
                 sentPackets++;
@@ -239,9 +239,12 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             //     scheduleAt(simTime() + uniform(5,7),retryMeasurements);
             // }
             // Schedule Next send measurements
+            int i = 0;
             double time = timeOnAir(loRaSF, loRaBW, 40, 1)*100;
             do {
                 timeToNextPacket = par("timeToNextPacket");
+                i = i + 1;
+                if(i==5) break;
             } while(timeToNextPacket <= time);
             if(numberOfPacketsToSend == 0 || numberOfPacketsToSend > sentPackets)
                 scheduleAt(simTime() + timeToNextPacket, sendMeasurements);

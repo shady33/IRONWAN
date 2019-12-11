@@ -384,6 +384,7 @@ void NeighbourTalker::acceptBid(DevAddr addr)
     }else if(AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM){
         for(int i=0;i<currentBids.size();i++){
             if(currentBids[i].addr == addr){
+                idx = i;
                 if(currentBids[i].gatewaysThatBid.size() > 0){
                     int val = intuniform(0,currentBids[i].gatewaysThatBid.size()-1);
                     int j=0;
@@ -393,6 +394,7 @@ void NeighbourTalker::acceptBid(DevAddr addr)
                         j++;
                     }
                 }
+                break;
             }
         }
     }
