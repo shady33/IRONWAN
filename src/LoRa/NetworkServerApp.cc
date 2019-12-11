@@ -47,6 +47,7 @@ void NetworkServerApp::initialize(int stage)
         }
         sequenceNumber = 0;
         receivedSomething = 0;
+        sentMsgs = 0;
     }
 }
 
@@ -69,7 +70,6 @@ void NetworkServerApp::handleMessage(cMessage *msg)
                 numOfReceivedPackets++;
             counterOfReceivedPacketsPerSF[frame->getLoRaSF()-7]++;
         }
-        updateKnownNodes(frame);
         processLoraMACPacket(PK(msg));
     }else if (msg->isSelfMessage()) {
         processScheduledPacket(msg);
@@ -84,6 +84,7 @@ void NetworkServerApp::processLoraMACPacket(cPacket *pk)
         delete pk;
         return;
     }
+    updateKnownNodes(frame);
     addPktToProcessingTable(frame);
 }
 
@@ -100,6 +101,8 @@ void NetworkServerApp::finish()
     }
     receivedRSSI.recordAs("receivedRSSI");
     recordScalar("numOfReceivedPackets", numOfReceivedPackets);
+    recordScalar("ReceivedPacketsForNS",receivedSomething);
+    recordScalar("SentADRmessages", sentMsgs);
     for(uint i=0;i<receivedPackets.size();i++)
     {
         delete receivedPackets[i].rcvdPacket;
@@ -140,7 +143,6 @@ void NetworkServerApp::finish()
         recordScalar("DER SF12", double(counterOfReceivedPacketsPerSF[5]) / counterOfSentPacketsFromNodesPerSF[5]);
     else
         recordScalar("DER SF12", 0);
-    recordScalar("SentADRmessages", sentMsgs);
 }
 
 bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)

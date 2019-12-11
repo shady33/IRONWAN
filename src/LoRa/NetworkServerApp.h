@@ -80,7 +80,7 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     int networkServerNumber;
     int sentMsgs;
     unsigned long int sequenceNumber;
-    int receivedSomething;
+    unsigned long receivedSomething;
 
   protected:
     virtual void initialize(int stage) override;

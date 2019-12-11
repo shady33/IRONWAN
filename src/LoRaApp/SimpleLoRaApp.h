@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef __LORA_OMNET_SIMPLELORAAPP_H_
 #define __LORA_OMNET_SIMPLELORAAPP_H_
@@ -45,7 +45,7 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         int numRecvBytes;
         simtime_t timeOfLastPacket;
         double dataToSend;
-        bool first; 
+        bool first;
         std::string schedulerClass;
         int sensorNumber;
 
@@ -82,7 +82,7 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         int noOfRetransmits;
         int retryLimit;
         simtime_t startTime;
-        
+
         //variables to control ADR
         bool evaluateADRinNode;
         int ADR_ACK_CNT = 0;
@@ -91,8 +91,8 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         bool sendNextPacketWithADRACKReq = false;
         void increaseSFIfPossible();
         bool success;
-        int numberOfAcks; 
-        int totalNoOfRetransmits;
+        int numberOfAcks;
+        long totalNoOfRetransmits;
     public:
         SimpleLoRaApp() {}
         virtual ~SimpleLoRaApp();
