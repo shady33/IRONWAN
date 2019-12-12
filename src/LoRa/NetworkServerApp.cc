@@ -70,6 +70,7 @@ void NetworkServerApp::handleMessage(cMessage *msg)
                 numOfReceivedPackets++;
             counterOfReceivedPacketsPerSF[frame->getLoRaSF()-7]++;
         }
+        updateKnownNodes(frame);
         processLoraMACPacket(PK(msg));
     }else if (msg->isSelfMessage()) {
         processScheduledPacket(msg);
@@ -84,7 +85,6 @@ void NetworkServerApp::processLoraMACPacket(cPacket *pk)
         delete pk;
         return;
     }
-    updateKnownNodes(frame);
     addPktToProcessingTable(frame);
 }
 
