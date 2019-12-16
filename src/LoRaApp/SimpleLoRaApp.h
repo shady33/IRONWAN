@@ -27,6 +27,7 @@
 #include "../misc/cSimulinkRTScheduler.h"
 #include "inet/mobility/single/LinearMobility.h"
 #include "../AeseNeighbours/timeOnAir.h"
+#include "../AeseNeighbours/NodeParams.h"
 
 using namespace omnetpp;
 

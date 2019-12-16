@@ -91,14 +91,18 @@ void NetworkServerApp::processLoraMACPacket(cPacket *pk)
 void NetworkServerApp::finish()
 {
     recordScalar("LoRa_NS_DER", double(counterOfReceivedPackets)/counterOfSentPacketsFromNodes);
+    long unackedNodes = 0;
     for(uint i=0;i<knownNodes.size();i++)
     {
+        if(!knownNodes[i].confirmedNode && knownNodes[i].isForMe)
+            unackedNodes = unackedNodes + knownNodes[i].receivedFrames;
         delete knownNodes[i].historyAllSNIR;
         delete knownNodes[i].historyAllRSSI;
         delete knownNodes[i].receivedSeqNumber;
         delete knownNodes[i].calculatedSNRmargin;
         recordScalar("Send ADR for node", knownNodes[i].numberOfSentADRPackets);
     }
+    recordScalar("UnAckedNodesReceived",unackedNodes);
     receivedRSSI.recordAs("receivedRSSI");
     recordScalar("numOfReceivedPackets", numOfReceivedPackets);
     recordScalar("ReceivedPacketsForNS",receivedSomething);
@@ -168,6 +172,7 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
             if(knownNodes[i].lastSeqNoProcessed < pkt->getSequenceNumber())
             {
                 knownNodes[i].lastSeqNoProcessed = pkt->getSequenceNumber();
+                knownNodes[i].receivedFrames += 1;
             }
             break;
         }
@@ -177,6 +182,9 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
         knownNode newNode;
         newNode.srcAddr= pkt->getTransmitterAddress();
         newNode.lastSeqNoProcessed = pkt->getSequenceNumber();
+        newNode.confirmedNode = pkt->getConfirmedMessage();
+        newNode.receivedFrames = 1;
+        newNode.isForMe = (pkt->getTransmitterAddress().getAddressByte(0) == networkServerNumber);
         newNode.framesFromLastADRCommand = 0;
         newNode.numberOfSentADRPackets = 0;
         newNode.historyAllSNIR = new cOutVector;

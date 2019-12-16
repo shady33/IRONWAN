@@ -11,7 +11,7 @@ import loranetwork.LoraNode.AeseLoRaActuatorNode;
 import loranetwork.LoraNode.AeseLoRaNode;
 import loranetwork.LoraNode.LoRaGW;
 import loranetwork.LoraNode.LoRaNode;
-
+import loranetwork.AeseNeighbours.NodeParams;
 
 @license(LGPL);
 network LoRaNetworkTest
@@ -80,6 +80,7 @@ network LoRaNetworkMultipleVendors
         int numberOfNS = default(1);
         @display("bgb=355.824,356.832");
     submodules:
+        nodeParams: NodeParams;
         AeseloRaNodes[numberOfAeseNodes]: AeseLoRaNode {
             @display("p=83.664,233.856");
         }

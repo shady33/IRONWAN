@@ -37,6 +37,9 @@ class knownNode
 public:
     DevAddr srcAddr;
     int framesFromLastADRCommand;
+    bool confirmedNode;
+    bool isForMe;
+    int receivedFrames;
     int lastSeqNoProcessed;
     int numberOfSentADRPackets;
     std::list<double> receivedSNIR;

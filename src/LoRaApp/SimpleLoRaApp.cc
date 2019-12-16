@@ -49,6 +49,11 @@ void SimpleLoRaApp::initialize(int stage)
         rtEvent = new cMessage("rtEvent");
         retryLimit = par("retryLimit");
 
+        if(retryLimit == 0){
+            NodeParams* nodeParams = dynamic_cast<NodeParams*>(getSimulation()->getModuleByPath("nodeParams"));
+            retryLimit = nodeParams->getRetryLimit();
+        }
+
         if(schedulerClass == "cSimulinkRTScheduler"){
             rtScheduler = check_and_cast<cSimulinkRTScheduler *>(getSimulation()->getScheduler());
             rtScheduler->setInterfaceModule(this, rtEvent, recvBuffer, 4000, &numRecvBytes,false,false);
@@ -144,6 +149,11 @@ void SimpleLoRaApp::finish()
     recordScalar("finalTP", loRaTP);
     recordScalar("finalSF", loRaSF);
     recordScalar("sentPackets", sentPackets);
+    if(retryLimit > 1)
+        recordScalar("AckedPacketsTx", sentPackets);
+    else
+        recordScalar("UnAckedPacketsTx", sentPackets);
+
     recordScalar("receivedADRCommands", receivedADRCommands);
     recordScalar("receivedAckMessages", receivedAckMessages);
     recordScalar("TotalNumberOfRetransmits",totalNoOfRetransmits);
@@ -225,19 +235,8 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 // retryMeasurements = new cMessage("retryMeasurements");
                 scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }
-            // if (simTime() >= getSimulation()->getWarmupPeriod())
-                sentPackets++;
-            // noOfRetransmits++;
-            // if(noOfRetransmits == retryLimit){
-            //     retransmits.record(noOfRetransmits);
-            //     noOfRetransmits = 1;
-            // }else{
-            //     // timeToNextPacket = uniform(5,7);
-            //     // sendMeasurements = new cMessage("sendMeasurements");
-            //     // scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
-            //     retryMeasurements = new cMessage("retryMeasurements");
-            //     scheduleAt(simTime() + uniform(5,7),retryMeasurements);
-            // }
+            sentPackets++;
+
             // Schedule Next send measurements
             int i = 0;
             double time = timeOnAir(loRaSF, loRaBW, 40, 1)*100;

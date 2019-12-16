@@ -52,6 +52,7 @@ OBJS = \
     $O/src/AeseNeighbours/NeighbourTalker.o \
     $O/src/AeseNeighbours/PacketDuplicator.o \
     $O/src/AeseNeighbours/timeOnAir.o \
+    $O/src/AeseNeighbours/NodeParams.o \
     $O/src/LoRa/LoRaGWMac.o \
     $O/src/LoRa/LoRaGWRadio.o \
     $O/src/LoRa/LoRaMac.o \
