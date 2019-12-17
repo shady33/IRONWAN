@@ -47,6 +47,8 @@ void PacketForwarder::initialize(int stage)
     schedulerClass = getSimulation()->getScheduler()->str();
 
     if (stage == 0) {
+        GWinGrid();
+
         LoRa_GWPacketReceived = registerSignal("LoRa_GWPacketReceived");
         getSimulation()->getSystemModule()->subscribe("LoRaMiniSlotCollision", this);
         getSimulation()->getSystemModule()->subscribe("LoRaDataSlotCollision", this);
@@ -133,6 +135,31 @@ void PacketForwarder::initialize(int stage)
     }
 }
 
+void PacketForwarder::GWinGrid()
+{
+    auto *mobility = check_and_cast<StationaryMobility *>(getParentModule()->getSubmodule("mobility"));
+
+    int GWNumber = DevAddr::generateGatewayNumber();
+    int numberOfGateways = par("numberOfGateways");
+
+    int val1 = ceil(sqrt(numberOfGateways));
+    while(numberOfGateways % val1 != 0) val1 = val1 + 1;
+    int val2 = numberOfGateways/val1;
+
+    if(val2 == 1)
+        val2 = val2 + 1;
+    int xID = 1 + (GWNumber%val1);
+    int yID = 1 + (GWNumber/val1);
+
+    double xGap = (par("constraintAreaMaxX").doubleValue()) / (val1+1);
+    double yGap = (par("constraintAreaMaxY").doubleValue()) / (val2+1);
+
+    double xpos = xID * xGap;
+    double ypos = yID * yGap;
+
+    mobility->par("initialX").setDoubleValue(xpos);
+    mobility->par("initialY").setDoubleValue(ypos);
+}
 
 void PacketForwarder::startUDP()
 {

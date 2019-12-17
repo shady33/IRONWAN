@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef __LORANETWORK_PACKETFORWARDER_H_
 #define __LORANETWORK_PACKETFORWARDER_H_
@@ -27,6 +27,7 @@
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "../misc/cSimulinkRTScheduler.h"
 #include "../LoRaApp/AeseAppPacket_m.h"
+#include "inet/mobility/static/StationaryMobility.h"
 
 namespace inet {
 
@@ -62,7 +63,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     std::string schedulerClass;
     simtime_t timeToStartSignal;
     simtime_t actuationPeriod;
-    
+
     int DTQ = 0;
     int CRQ = 0;
     int noOfMslots;
@@ -84,12 +85,12 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     cOutVector MiniSlots;
     cOutVector CRQVector;
     cOutVector DTQVector;
-    
+
     int numberOfNodes;
     int numberOfAeseNodes;
     int numberOfAeseActuatorNodes;
     int numberOfSubSystems;
-    
+
     bool enableActuation;
     bool sendImmediateActuation;
     simtime_t packetGeneratedTime[128];
@@ -101,7 +102,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int sentMsgs;
   protected:
     std::vector<L3Address> destAddresses;
-    std::vector<L3Address> gwAddresses;    
+    std::vector<L3Address> gwAddresses;
     int localPort = -1, destPort = -1;
     int numberOfGateways;
     // state
@@ -129,7 +130,8 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void sendActuationMessageNow(AeseAppPacket *appPacket);
     void updateAndLogNode(LoRaMacFrame* pkt);
     void CountUniqueNodes(LoRaMacFrame* pkt);
-   
+    void GWinGrid();
+
   public:
     virtual ~PacketForwarder();
     simsignal_t LoRa_GWPacketReceived;

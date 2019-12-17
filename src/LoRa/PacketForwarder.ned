@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 package loranetwork.LoRa;
 
@@ -32,7 +32,7 @@ simple PacketForwarder like IUDPApp
     int destPort;
 	double timeToStartSignal @unit(s) = default(10s);
     double actuationPeriod @unit(s) = default(1s);
-    
+
     int noOfMslots = default(3);
     int noOfNslots = default(1);
     double mSlotDuration @unit(s) = default(0.1s);
@@ -44,13 +44,16 @@ simple PacketForwarder like IUDPApp
     int numberOfAeseNodes = default(0);
     int numberOfAeseActuatorNodes = default(0);
     int numberOfSubSystems = default(0);
-    
+    int numberOfGateways = default(1);
+
     bool sendImmediateActuation = default(false);
+
+    int constraintAreaMaxX @unit(m) = default(320m);
+    int constraintAreaMaxY @unit(m) = default(320m);
 
     bool enableDQ = default(false);
     bool enableActuation = default(false);
 
-    int numberOfGateways = default(1);
     gates:
 		input lowerLayerIn @labels(PacketForwarder/up);
         output lowerLayerOut @labels(PacketForwarder/down);

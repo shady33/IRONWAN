@@ -28,6 +28,7 @@ unsigned int DevAddr::SensorNumberCtr;
 unsigned int DevAddr::nsAddressCtr;
 unsigned int DevAddr::gwNSAddressCtr;
 unsigned int DevAddr::nsCount;
+unsigned int DevAddr::gwAddressCtr;
 
 const DevAddr DevAddr::UNSPECIFIED_ADDRESS;
 const DevAddr DevAddr::BROADCAST_ADDRESS("ff:ff:ff:ff");
@@ -185,6 +186,12 @@ int DevAddr::generateNetworkServerNumber()
 {
     DevAddr::nsAddressCtr = DevAddr::nsAddressCtr + 1;
     return (DevAddr::nsAddressCtr-1);
+}
+
+int DevAddr::generateGatewayNumber()
+{
+    DevAddr::gwAddressCtr = DevAddr::gwAddressCtr + 1;
+    return (DevAddr::gwAddressCtr - 1);
 }
 
 int DevAddr::generateGwNSNumber(int ns)

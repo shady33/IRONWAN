@@ -40,7 +40,7 @@ void SimpleLoRaApp::initialize(int stage)
            coordsValues = generateUniformCircleCoordinates(host->par("maxGatewayDistance").doubleValue(), host->par("gatewayX").doubleValue(), host->par("gatewayY").doubleValue());
            // StationaryMobility *mobility = check_and_cast<StationaryMobility *>(host->getSubmodule("mobility"));
            LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
-           mobility->par("speed").setDoubleValue(1);
+           mobility->par("speed").setDoubleValue(0);
            mobility->par("angle").setDoubleValue(270);
            mobility->par("initialX").setDoubleValue(coordsValues.first);
            mobility->par("initialY").setDoubleValue(coordsValues.second);

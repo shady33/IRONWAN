@@ -39,10 +39,10 @@ class INET_API DevAddr
   public:
     static unsigned int actuatorNumberCtr;
     static unsigned int SensorNumberCtr;
-    static unsigned int gwNSAddressCtr; 
+    static unsigned int gwNSAddressCtr;
     static unsigned int nsAddressCtr;
     static unsigned int nsCount;
-
+    static unsigned int gwAddressCtr;
 
 #if OMNETPP_VERSION >= 0x500
     class SimulationLifecycleListener : public cISimulationLifecycleListener
@@ -55,6 +55,7 @@ class INET_API DevAddr
                 gwNSAddressCtr=0;
                 nsAddressCtr=0;
                 nsCount=0;
+                gwAddressCtr=0;
             }
         }
 
@@ -189,6 +190,7 @@ class INET_API DevAddr
 
     static int generateNetworkServerNumber();
     static int generateGwNSNumber(int ns);
+    static int generateGatewayNumber();
 
     bool operator<(const DevAddr& other) const { return address < other.address; }
 

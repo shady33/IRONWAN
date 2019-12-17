@@ -22,7 +22,7 @@ def readAndPrint(filename):
     'vecvalue': parse_ndarray
     })
 
-    attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode']
+    attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode','ratioOfAckToTotal']
     scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids','SentADRmessages','TotalNumberOfRetransmits','ReceivedPacketsForNS','UnAckedNodesReceived','AckedPacketsTx','UnAckedPacketsTx']
     vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
