@@ -53,7 +53,8 @@ void LoRaGWMac::initialize(int stage)
         GW_USED_TIME = registerSignal("GW_USED_TIME");
         GW_TRANSMITTED_PACKET = registerSignal("GW_TRANSMITTED_PACKET");
         sendMessageFromQueue = new cMessage("Send message from queue");
-        freeAfter = 0;
+        freeAfterCurrent = 0;
+        freeAfterLast = 0;
     }
     else if (stage == INITSTAGE_LINK_LAYER) {
         radio->setRadioMode(IRadio::RADIO_MODE_TRANSCEIVER);
@@ -105,6 +106,7 @@ void LoRaGWMac::handleSelfMessage(cMessage *msg)
             emit(GW_USED_TIME,delta);
             GW_forwardedDown++;
             usedTimes[3] = usedTimes[3] + delta;
+
             sendDown(frame);
             sendingQueue.pop_front();
         }
@@ -118,7 +120,7 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
     frame->removeControlInfo();
     simtime_t sendingTime = frame->getSendingTime();
 
-    if(sendingTime >= freeAfter){
+    if(sendingTime >= freeAfterCurrent){
         int PayloadLength = frame->getPayloadLength();
         if(PayloadLength == 0)
             PayloadLength = 20;
@@ -129,7 +131,8 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
         sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame->getReceiverAddress(),frame);
         scheduleAt(sendingTime,sendMessageFromQueue);
-        freeAfter = sendingTime + (delta * 10);
+        freeAfterLast = freeAfterCurrent;
+        freeAfterCurrent = sendingTime + (delta * 10);
 
         std::string addrStrwithId = (frame->getReceiverAddress()).str();
         addrStrwithId += ":";
@@ -205,6 +208,9 @@ void LoRaGWMac::popDevAddr(DevAddr addr)
     for(auto it=sendingQueue.begin();it!=sendingQueue.end();it++){
         if((*it).addr == addr) {
             delete (*it).frame;
+            if((*it).freeAfter == freeAfterCurrent){
+                freeAfterCurrent = freeAfterLast;
+            }
             sendingQueue.erase(it++);
         }
     }
