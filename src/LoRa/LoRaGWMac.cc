@@ -97,18 +97,21 @@ void LoRaGWMac::handleSelfMessage(cMessage *msg)
 {
     if(msg == dutyCycleTimer) waitingForDC = false;
     if(msg == sendMessageFromQueue){
-        if(simTime() == sendingQueue.front().sendingTime){
-            LoRaMacFrame* frame = sendingQueue.front().frame;
-            int PayloadLength = frame->getPayloadLength();
-            if(PayloadLength == 0)
-                PayloadLength = 20;
-            double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-            emit(GW_USED_TIME,delta);
-            GW_forwardedDown++;
-            usedTimes[3] = usedTimes[3] + delta;
+        for(auto it=sendingQueue.begin();it!=sendingQueue.end();it++){
+            if(simTime() == (*it).sendingTime){
+                LoRaMacFrame* frame = (*it).frame;
+                int PayloadLength = frame->getPayloadLength();
+                if(PayloadLength == 0)
+                    PayloadLength = 20;
+                double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+                emit(GW_USED_TIME,delta);
+                GW_forwardedDown++;
+                usedTimes[3] = usedTimes[3] + delta;
 
-            sendDown(frame);
-            sendingQueue.pop_front();
+                sendDown(frame);
+                sendingQueue.erase(it++);
+                break;
+            }
         }
         if(!sendingQueue.empty()) scheduleAt((sendingQueue.front()).sendingTime,sendMessageFromQueue);
     }
@@ -134,12 +137,15 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
            if(sendMessageFromQueue->getArrivalTime() > sendingTime){
                 cancelEvent(sendMessageFromQueue);
                 scheduleAt(sendingTime,sendMessageFromQueue);
+                freeAfterLast = freeAfterCurrent;
+                freeAfterCurrent = sendingTime + (delta * 10);
            }
         }
-        else
+        else{
             scheduleAt(sendingTime,sendMessageFromQueue);
-        freeAfterLast = freeAfterCurrent;
-        freeAfterCurrent = sendingTime + (delta * 10);
+            freeAfterLast = freeAfterCurrent;
+            freeAfterCurrent = sendingTime + (delta * 10);
+        }
 
         std::string addrStrwithId = (frame->getReceiverAddress()).str();
         addrStrwithId += ":";
