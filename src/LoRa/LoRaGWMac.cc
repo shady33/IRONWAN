@@ -130,7 +130,14 @@ void LoRaGWMac::handleUpperPacket(cPacket *msg)
         frame->setControlInfo(ctrl);
         double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
         sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame->getReceiverAddress(),frame);
-        scheduleAt(sendingTime,sendMessageFromQueue);
+        if(sendMessageFromQueue->isScheduled()){
+           if(sendMessageFromQueue->getArrivalTime() > sendingTime){
+                cancelEvent(sendMessageFromQueue);
+                scheduleAt(sendingTime,sendMessageFromQueue);
+           }
+        }
+        else
+            scheduleAt(sendingTime,sendMessageFromQueue);
         freeAfterLast = freeAfterCurrent;
         freeAfterCurrent = sendingTime + (delta * 10);
 
