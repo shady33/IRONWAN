@@ -46,6 +46,8 @@ simple PacketForwarder like IUDPApp
     int numberOfSubSystems = default(0);
     int numberOfGateways = default(1);
 
+    int sendToAll = default(0);
+
     bool sendImmediateActuation = default(false);
 
     int constraintAreaMaxX @unit(m) = default(320m);

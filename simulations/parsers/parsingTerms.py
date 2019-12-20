@@ -22,8 +22,8 @@ def readAndPrint(filename):
     'vecvalue': parse_ndarray
     })
 
-    attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode','ratioOfAckToTotal']
-    scalarsToRead = ['numSent','sentPackets','GW_droppedDC','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids','SentADRmessages','TotalNumberOfRetransmits','ReceivedPacketsForNS','UnAckedNodesReceived','AckedPacketsTx','UnAckedPacketsTx']
+    attributes = ['nodes','load','gateways','numberOfNS','AeseGWMode','ratioOfAckToTotal','sendToAll']
+    scalarsToRead = ['numSent','sentPackets','Channel_0_used_time','Channel_1_used_time','Channel_2_used_time','Channel_3_used_time','UniqueNodesCount','AverageUsedTimePerNode','DownlinkTotalUsedTimes','RequestedBids','FailedBids','AcceptedBids','SentADRmessages','TotalNumberOfRetransmits','ReceivedPacketsForNS','UnAckedNodesReceived','AckedPacketsTx','UnAckedPacketsTx','GW_forwardedDown']
     vectorsToRead = ['NumberOfRetransmissions','EndToEndDelay']
 
     header = []

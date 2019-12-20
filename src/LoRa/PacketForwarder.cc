@@ -167,15 +167,24 @@ void PacketForwarder::startUDP()
     const char *localAddress = par("localAddress");
     socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), localPort);
 
-    const char *destAddrs = par("destAddresses");
-    std::string destAddrsString;
-    if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
-         std::stringstream ss;
-         ss << "networkServer[" << gwNSNumber << "]";
-         destAddrsString = ss.str();
-    }
-    const char *destAddrsNew = destAddrsString.c_str();
+    int sendToAll = par("sendToAll");
 
+    std::string destAddrsString;
+    if(sendToAll == 0){
+        const char *destAddrs = par("destAddresses");
+        if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
+             std::stringstream ss;
+             ss << "networkServer[" << gwNSNumber << "]";
+             destAddrsString = ss.str();
+        }
+    }else{
+        std::stringstream ss;
+        int numberOfNS = par("numberOfNS");
+        for(int i=0;i<numberOfNS;i++) ss << "networkServer[" << gwNSNumber << "] ";
+        destAddrsString = ss.str();
+    }
+
+    const char *destAddrsNew = destAddrsString.c_str();
     cStringTokenizer tokenizer(destAddrsNew);
     const char *token;
 
@@ -369,8 +378,6 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
         }
         delete packet;
     }else if(packettype == JOIN_REQUEST){
-        L3Address destAddr = destAddresses[0];
-        EV << "Sending to server" << destAddr << endl;
         if (frame->getControlInfo())
             delete frame->removeControlInfo();
 
@@ -415,7 +422,12 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
 
         // delete packet;
         // if(frame->getConfirmedMessage())
-        socket.sendTo(frame, destAddr, destPort);
+        for(auto destAddr: destAddresses){
+            EV << "Sending to server" << destAddr << endl;
+            socket.sendTo(frame->dup(), destAddr, destPort);
+        }
+        delete frame;
+
         // else
         //     delete pk;
     }

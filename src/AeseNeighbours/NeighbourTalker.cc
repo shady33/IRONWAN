@@ -50,7 +50,7 @@ void NeighbourTalker::initialize(int stage)
         acceptedBids = 0;
 
         if(AeseGWMode != NO_NEIGHBOUR){
-            getSimulation()->getSystemModule()->subscribe("GW_TRANSMITTED_PACKET", this);
+            loRaGwMac->subscribe("GW_TRANSMITTED_PACKET", this);
             scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
             startUDP();
             // scheduleAt(simTime() + periodicPingInterval, transmitPingMessage);
