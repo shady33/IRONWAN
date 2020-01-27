@@ -180,7 +180,7 @@ void PacketForwarder::startUDP()
     }else{
         std::stringstream ss;
         int numberOfNS = par("numberOfNS");
-        for(int i=0;i<numberOfNS;i++) ss << "networkServer[" << gwNSNumber << "] ";
+        for(int i=0;i<numberOfNS;i++) ss << "networkServer[" << i << "] ";
         destAddrsString = ss.str();
     }
 
