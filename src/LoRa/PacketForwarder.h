@@ -63,7 +63,8 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     std::string schedulerClass;
     simtime_t timeToStartSignal;
     simtime_t actuationPeriod;
-
+    cOutVector listOfSuccessfulMessages;
+    
     int DTQ = 0;
     int CRQ = 0;
     int noOfMslots;

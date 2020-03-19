@@ -114,6 +114,8 @@ void PacketForwarder::initialize(int stage)
         }
 
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
+        listOfSuccessfulMessages.setName("listOfSuccessfulMessages");
+
         if(enableDQ){
             CRQVector.setName("CRQVector");
             DTQVector.setName("DTQVector");
@@ -326,6 +328,8 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     frame->setRSSI(math::mW2dBm(rssi));
     frame->setSNIR(cInfo->getMinSNIR());
     EV << frame->getTransmitterAddress() << frame->getMsgType() << endl;
+    // std::cout << getParentModule() << "," << frame->getLoRaCF() << "," << frame->getLoRaSF() << "," << frame->getLoRaBW() << "," << frame->getLoRaCR() << std::endl;
+    listOfSuccessfulMessages.record(frame->getLoRaCF().get());
 
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)
