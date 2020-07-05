@@ -64,7 +64,10 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     simtime_t timeToStartSignal;
     simtime_t actuationPeriod;
     cOutVector listOfSuccessfulMessages;
-    
+    cOutVector listOfSuccessfulNodes;
+    cOutVector actualCntValues;
+    cOutVector macCntValues;
+
     int DTQ = 0;
     int CRQ = 0;
     int noOfMslots;

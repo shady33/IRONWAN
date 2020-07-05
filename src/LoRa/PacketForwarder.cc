@@ -115,8 +115,11 @@ void PacketForwarder::initialize(int stage)
 
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
         listOfSuccessfulMessages.setName("listOfSuccessfulMessages");
+        listOfSuccessfulNodes.setName("listOfSuccessfulNodes");
+        actualCntValues.setName("listOfCntValues");
+	macCntValues.setName("listOfMacCntValues");
 
-        if(enableDQ){
+	if(enableDQ){
             CRQVector.setName("CRQVector");
             DTQVector.setName("DTQVector");
             dataReceived.setName("ReceivedQueue");
@@ -330,6 +333,12 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     EV << frame->getTransmitterAddress() << frame->getMsgType() << endl;
     // std::cout << getParentModule() << "," << frame->getLoRaCF() << "," << frame->getLoRaSF() << "," << frame->getLoRaBW() << "," << frame->getLoRaCR() << std::endl;
     listOfSuccessfulMessages.record(frame->getLoRaCF().get());
+    //(frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
+    listOfSuccessfulNodes.record((frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3));
+    macCntValues.record(frame->getSequenceNumber());
+    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
+    actualCntValues.record(packet->getActuatorSequenceNumbers(0));
+	
 
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)

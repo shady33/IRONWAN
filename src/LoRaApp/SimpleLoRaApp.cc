@@ -91,6 +91,8 @@ void SimpleLoRaApp::initialize(int stage)
             }
         }
 
+        timeToNextPacketOnce = par("timeToNextPacket");
+        
         sentPackets = 0;
         receivedADRCommands = 0;
         receivedAckMessages = 0;
@@ -241,12 +243,17 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             int i = 0;
             double time = timeOnAir(loRaSF, loRaBW, 40, 1)*100;
             do {
-                timeToNextPacket = par("timeToNextPacket");
+                // timeToNextPacket = par("timeToNextPacket");
+                timeToNextPacket = timeToNextPacketOnce;
                 i = i + 1;
                 if(i==5) break;
             } while(timeToNextPacket <= time);
             if(numberOfPacketsToSend == 0 || numberOfPacketsToSend > sentPackets)
                 scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
+	        else{
+		        numberOfPacketsToSend = numberOfPacketsToSend * 2;
+		        scheduleAt(simTime() + uniform(21600,64800),sendMeasurements);
+	        }
         }
         // delete msg;
     }
