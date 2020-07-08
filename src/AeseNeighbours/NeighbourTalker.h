@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __LORANETWORK_PACKETFORWARDER_H_
-#define __LORANETWORK_PACKETFORWARDER_H_
+#ifndef __AESE_NEIGHBOUR_TALKER_H_
+#define __AESE_NEIGHBOUR_TALKER_H_
 
 #include <omnetpp.h>
 #include "RadioControlInfo_m.h"
@@ -31,7 +31,7 @@
 #include "LoRaMacFrame_m.h"
 #include "NeighbourTalkerMessage_m.h"
 #include "AeseAppPacket_m.h"
-#include "DecideWhichNode_m.h"
+#include "DevAddrMessage_m.h"
 
 namespace inet {
 
@@ -105,7 +105,7 @@ class INET_API NeighbourTalker : public cSimpleModule, public cListener
     simtime_t periodicPingInterval;
     cMessage *transmitPingMessage;
     cMessage *checkAnyUnsentMessages;
-    // cMessage *decideWhichNode;
+    // cMessage *devAddrMessage;
     SupportedProtocols currentProtocol;
 
   protected:

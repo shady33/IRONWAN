@@ -51,6 +51,7 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 OBJS = \
     $O/src/AeseNeighbours/NeighbourTalker.o \
     $O/src/AeseNeighbours/PacketDuplicator.o \
+    $O/src/AeseNeighbours/PeriodCalculator.o \
     $O/src/AeseNeighbours/timeOnAir.o \
     $O/src/AeseNeighbours/NodeParams.o \
     $O/src/LoRa/LoRaGWMac.o \
@@ -84,7 +85,7 @@ OBJS = \
     $O/src/LoRaApp/AeseAppPacket_m.o \
     $O/src/LoRaPhy/LoRaRadioControlInfo_m.o \
     $O/src/AeseNeighbours/NeighbourTalkerMessage_m.o \
-    $O/src/AeseNeighbours/DecideWhichNode_m.o
+    $O/src/AeseNeighbours/DevAddrMessage_m.o
 
 # Message files
 MSGFILES = \
@@ -93,7 +94,7 @@ MSGFILES = \
     src/LoRaApp/AeseAppPacket.msg \
     src/LoRaPhy/LoRaRadioControlInfo.msg \
     src/AeseNeighbours/NeighbourTalkerMessage.msg \
-    src/AeseNeighbours/DecideWhichNode.msg
+    src/AeseNeighbours/DevAddrMessage.msg
 
 # SM files
 SMFILES =

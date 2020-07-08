@@ -24,7 +24,6 @@ import inet.transportlayer.contract.IUDP;
 import loranetwork.LoRa.LoRaGWNic;
 import loranetwork.LoRa.PacketForwarder;
 
-
 module LoRaAeseGW
 {
     parameters:
@@ -55,6 +54,9 @@ module LoRaAeseGW
         neighbourTalker: NeighbourTalker {
             @display("p=97.008,162.432;is=vl");
         }
+        periodCalculator: PeriodCalculator {
+            @display("p=97.008,190.432;is=vl");
+        }
         eth[sizeof(ethg)]: <default("EthernetInterface")> like IWiredNic {
             parameters:
                 @display("p=340.656,442.17603,row,60;q=txQueue");
@@ -83,7 +85,10 @@ module LoRaAeseGW
         neighbourTalker.lowerLayerOut --> packetDuplicator.layerIn++;
         packetForwarder.lowerLayerIn <-- packetDuplicator.layerOut++;
         neighbourTalker.lowerLayerIn <-- packetDuplicator.layerOut++;
-
+        
+        periodCalculator.lowerLayerOut --> packetDuplicator.layerIn++;
+        periodCalculator.lowerLayerIn <-- packetDuplicator.layerOut++;
+        
         neighbourTalker.udpOut --> udp.appIn++;
         neighbourTalker.udpIn <-- udp.appOut++;
 

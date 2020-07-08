@@ -117,7 +117,7 @@ void PacketForwarder::initialize(int stage)
         listOfSuccessfulMessages.setName("listOfSuccessfulMessages");
         listOfSuccessfulNodes.setName("listOfSuccessfulNodes");
         actualCntValues.setName("listOfCntValues");
-	macCntValues.setName("listOfMacCntValues");
+	    macCntValues.setName("listOfMacCntValues");
 
 	if(enableDQ){
             CRQVector.setName("CRQVector");

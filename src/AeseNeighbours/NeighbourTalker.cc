@@ -135,10 +135,10 @@ void NeighbourTalker::handleMessage(cMessage *msg)
             handleDownlinkQueue();
             scheduleAt(simTime() + 0.1, checkAnyUnsentMessages);
         }else if(!strcmp(msg->getName(),"DecideWhichNodeBidToAccept")){
-            acceptBid(check_and_cast<DecideWhichNode*>(msg)->getAddr());
+            acceptBid(check_and_cast<DevAddrMessage*>(msg)->getAddr());
             delete msg;
         }else if(!strcmp(msg->getName(),"HaveIReceivedBidConfirmation")){
-            checkConfirmationAndDelete(check_and_cast<DecideWhichNode*>(msg)->getAddr());
+            checkConfirmationAndDelete(check_and_cast<DevAddrMessage*>(msg)->getAddr());
             delete msg;
         }
     }
@@ -221,7 +221,7 @@ void NeighbourTalker::handleDownlinkQueue()
                         socket.sendTo(request,gw,3333);
                     }
                     if(AeseGWMode == NEIGHBOUR_WITH_BIDS || AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM){
-                        DecideWhichNode *msg = new DecideWhichNode("DecideWhichNodeBidToAccept");
+                        DevAddrMessage *msg = new DevAddrMessage("DecideWhichNodeBidToAccept");
                         msg->setAddr((*it).addr);
                         scheduleAt(simTime() + 0.5, msg);
                     }
@@ -343,7 +343,7 @@ void NeighbourTalker::sendConfirmationToNeighbour(cPacket* pkt)
     socket.sendTo(confirm,cInfo->getSrcAddr(),3333);
 
     (*NeighbourDropRequestList)[request->getDeviceAddress()] = 1;
-    DecideWhichNode *msg = new DecideWhichNode("HaveIReceivedBidConfirmation");
+    DevAddrMessage *msg = new DevAddrMessage("HaveIReceivedBidConfirmation");
     msg->setAddr(request->getDeviceAddress());
     scheduleAt(simTime()+0.5,msg);
 }

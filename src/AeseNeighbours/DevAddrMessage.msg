@@ -6,7 +6,7 @@ class noncobject DevAddr;
 
 namespace inet;
 
-message DecideWhichNode
+message DevAddrMessage
 {
 	DevAddr addr;
 }
