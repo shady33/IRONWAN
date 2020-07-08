@@ -338,7 +338,7 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     macCntValues.record(frame->getSequenceNumber());
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
     actualCntValues.record(packet->getActuatorSequenceNumbers(0));
-	
+	delete packet;
 
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)

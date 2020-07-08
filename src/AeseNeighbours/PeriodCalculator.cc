@@ -11,7 +11,13 @@ PeriodCalculator::~PeriodCalculator()
 
 void PeriodCalculator::finish()
 {
-
+    auto iter = NodePeriodsList->begin();
+    while(iter != NodePeriodsList->end()) {
+        NodePeriodInfo& nodePeriodInfo = iter->second;
+        delete nodePeriodInfo.msg;
+        delete nodePeriodInfo.allPeriods;
+        iter++;
+    }
 }
 
 void PeriodCalculator::initialize(int stage)
@@ -27,6 +33,9 @@ void PeriodCalculator::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
+        std::string className(msg->getClassName());
+        if(className.compare("inet::LoRaMacFrame") == 0)
+            handleLoRaFrame(PK(msg));
     }else if(msg->isSelfMessage()){
         if(!strcmp(msg->getName(),"MessageNotReceivedFindIt")){
             DevAddr addr = check_and_cast<DevAddrMessage*>(msg)->getAddr();
@@ -36,7 +45,7 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             NodePeriodInfo& nodePeriodInfo = iter->second;
             // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
         }
-    }
+    }else delete msg;
 }
 
 void PeriodCalculator::handleLowerLayer(cPacket* pkt)
@@ -79,9 +88,11 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
             
             if((nodePeriodInfo.lastSeqNo < packet->getActuatorSequenceNumbers(0))){
                 // If it is a new message then continue
-                if(std::abs(SIMTIME_DBL(nodePeriodInfo.currentPeriod - timeBetweenMessages)) < 1){
+                if(std::abs(SIMTIME_DBL(nodePeriodInfo.currentPeriod - timeBetweenMessages)) > 1){
                     double x_n = SIMTIME_DBL(timeBetweenMessages)/(packet->getActuatorSequenceNumbers(0) - nodePeriodInfo.lastSeqNo);
                     nodePeriodInfo.listOfPeriods.push_back(x_n);
+                }else{
+                    nodePeriodInfo.listOfPeriods.clear();
                 }
                 nodePeriodInfo.numberOfMessagesSeen += 1;
                 nodePeriodInfo.lastReceivedTime = simTime();
@@ -103,6 +114,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                     // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
                 }
             }
+            delete packet;
         }
     }
     delete pkt;
