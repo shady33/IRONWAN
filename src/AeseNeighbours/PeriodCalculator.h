@@ -21,6 +21,8 @@ namespace inet {
 class INET_API PeriodCalculator : public cSimpleModule, public cListener
 {
   private:
+    double tValue;
+
     struct DevAddr_compare
     {
         bool operator()(const DevAddr& d1, const DevAddr& d2) const { return d1.compareTo(d2) < 0; }

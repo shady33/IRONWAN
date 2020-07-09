@@ -25,6 +25,7 @@ void PeriodCalculator::initialize(int stage)
     if (stage == 0) {
         
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
+        tValue = par("tValue"); 
         NodePeriodsList = new NodePeriodsStruct();
     }
 }
@@ -100,7 +101,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Exactly 10 elements in the array
                 if(nodePeriodInfo.listOfPeriods.size() == 10){
                     Statistics stats = calculateTValueAndOthers(nodePeriodInfo.listOfPeriods);
-                    if(stats.tValue <= 0.703){
+                    if(stats.tValue <= tValue){
                         nodePeriodInfo.currentPeriod = stats.median;
                         nodePeriodInfo.listOfPeriods.clear();
                     }else{
