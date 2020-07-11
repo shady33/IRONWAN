@@ -65,7 +65,6 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
 
   public:
     virtual ~PeriodCalculator();
-    void handleLowerLayer(cPacket *pkt);
 };
 }
 #endif

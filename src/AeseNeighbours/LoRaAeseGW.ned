@@ -57,6 +57,9 @@ module LoRaAeseGW
         periodCalculator: PeriodCalculator {
             @display("p=97.008,190.432;is=vl");
         }
+        reinforcementLearning: ReinforcementLearning {
+            @display("p=100.008,180.432;is=vl");
+        }
         eth[sizeof(ethg)]: <default("EthernetInterface")> like IWiredNic {
             parameters:
                 @display("p=340.656,442.17603,row,60;q=txQueue");
@@ -88,6 +91,9 @@ module LoRaAeseGW
         
         periodCalculator.lowerLayerOut --> packetDuplicator.layerIn++;
         periodCalculator.lowerLayerIn <-- packetDuplicator.layerOut++;
+        
+        reinforcementLearning.lowerLayerOut --> packetDuplicator.layerIn++;
+        reinforcementLearning.lowerLayerIn <-- packetDuplicator.layerOut++;
         
         neighbourTalker.udpOut --> udp.appIn++;
         neighbourTalker.udpIn <-- udp.appOut++;

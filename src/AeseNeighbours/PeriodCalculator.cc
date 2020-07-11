@@ -49,15 +49,6 @@ void PeriodCalculator::handleMessage(cMessage *msg)
     }else delete msg;
 }
 
-void PeriodCalculator::handleLowerLayer(cPacket* pkt)
-{
-    std::string className(pkt->getClassName());
-    if(className.compare("inet::LoRaMacFrame") == 0)
-        handleLoRaFrame(pkt);
-    else
-        delete pkt;
-}
-
 void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(pkt);

@@ -54,6 +54,7 @@ OBJS = \
     $O/src/AeseNeighbours/PeriodCalculator.o \
     $O/src/AeseNeighbours/timeOnAir.o \
     $O/src/AeseNeighbours/NodeParams.o \
+    $O/src/AeseNeighbours/ReinforcementLearning.o \
     $O/src/LoRa/LoRaGWMac.o \
     $O/src/LoRa/LoRaGWRadio.o \
     $O/src/LoRa/LoRaMac.o \
