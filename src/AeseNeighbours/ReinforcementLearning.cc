@@ -1,11 +1,12 @@
 #include "ReinforcementLearning.h"
 
 
-// TODO: Deal with different state sizes properly
-//       Decide the whole testing while training thing before
+// TODO: Deal with different state sizes properly -- Done
+//       Decide the whole testing while training thing before 
 //         it becomes part of the main module
 //       Decide whether next should be introduced
 //       Verify the whole logic once
+//      Random Number Generator
 namespace inet {
 
 Define_Module(ReinforcementLearning);
@@ -41,7 +42,18 @@ void ReinforcementLearning::initialize(int stage)
             max_messages_in_slot[i] = 0;
             current_channel_state[i] = 0;
         }
+        channels_mask = 0;
+        for (int i=0;i<numberOfPastSlots;i++)
+            channels_mask = (channels_mask << 4 ) || (0x0F);
         qTable = new QTable();
+
+        testNumber = 0;
+        runTest = new cMessage("RLTestingFunction");
+        scheduleAt(simTime() + 100, runTest);
+        randomRewardsTest.setName("RandomRewards");
+        randomChannelsTest.setName("RandomChannels");
+        epsilonRewardsTest.setName("EpsilonRewards");
+        epsilonChannelsTest.setName("EpsilonChannels");
     }
 }
 
@@ -56,6 +68,14 @@ void ReinforcementLearning::handleMessage(cMessage *msg)
             handleUpdatingTable();
             makeAnActionEpsilonGreedy();
             scheduleAt(simTime() + 0.1, updateTable);
+        }else if(msg == runTest){
+            calculateRewardsForTest();
+            makeAnActionTest();
+            if(testNumber < 10){
+                scheduleAt(simTime() + 0.1, runTest);
+            }else{
+                scheduleAt(simTime() + intuniform(10,100), runTest);
+            }
         }
     }else delete msg;
 }
@@ -77,7 +97,7 @@ void ReinforcementLearning::updateStates()
 {
     // Update Current Channel State
     for (int i = 0; i < 3; i++) {
-        current_channel_state[i] = (current_channel_state[i] << 4) | (0x0F & messages_in_last_slot[i]);
+        current_channel_state[i] = ((current_channel_state[i] << 4) || (0x0F && messages_in_last_slot[i])) && channels_mask;
         if(max_messages_in_slot[i] < messages_in_last_slot[i]) max_messages_in_slot[i] = messages_in_last_slot[i];
         messages_in_last_slot[i] = 0;
     }
@@ -149,22 +169,55 @@ void ReinforcementLearning::makeAnActionEpsilonGreedy()
     actionsTaken.push_back(actionToInsert);
 }
 
+// Calculate the reward for test and save to array
+void ReinforcementLearning::calculateRewardsForTest()
+{
+    if(actionsTakenRandom.size() == numberOfFutureSlots){
+        ActionsInQueue actInQueue = actionsTakenRandom.front();
+        actionsTakenRandom.pop_front();
+        double reward = calculateReward(actInQueue);
+        randomRewardsTest.record(reward);
+        randomChannelsTest.record(actInQueue.channel);
+    }
+    if(actionsTakenEpsilon.size() == numberOfFutureSlots){
+        ActionsInQueue actInQueue = actionsTakenEpsilon.front();
+        actionsTakenEpsilon.pop_front();
+        double reward = calculateReward(actInQueue);
+        epsilonRewardsTest.record(reward);
+        epsilonChannelsTest.record(actInQueue.channel);
+    }
+}
+
 // Make an action for testing random and q tables.
-// The frequency of this function is 0.5 seconds
 void ReinforcementLearning::makeAnActionTest()
 {
     State_t s = std::make_tuple(current_channel_state[0],current_channel_state[1],current_channel_state[2]);
     // Random Agent
     uint8_t randomChannelAction = rand() % 3;
     uint8_t randomSlot = rand() % numberOfFutureSlots;
-    ActionsInQueue actionToInsert;
-    actionToInsert.state = s;
-    actionToInsert.channel = randomChannelAction;
-    actionToInsert.slot = randomSlot;
-    actionsTaken.push_back(actionToInsert);
+    ActionsInQueue actionToInsertRandom;
+    actionToInsertRandom.state = s;
+    actionToInsertRandom.channel = randomChannelAction;
+    actionToInsertRandom.slot = randomSlot;
+    actionsTakenRandom.push_back(actionToInsertRandom);
 
     // Q Agent
-    
+    uint8_t channel;
+    uint8_t slot;
+    auto iter = qTable->find(s);
+    if(iter == qTable->end()){
+        channel = (rand() % 3);
+        slot = rand() % numberOfFutureSlots;
+    }else{
+        Actions& action = iter->second;
+        channel = action.maxActionChannel;
+        slot = action.maxActionSlot;
+    }
+    ActionsInQueue actionToInsertEpsilon;
+    actionToInsertEpsilon.state = s;
+    actionToInsertEpsilon.channel = channel;
+    actionToInsertEpsilon.slot = slot;
+    actionsTakenEpsilon.push_back(actionToInsertEpsilon);
 }
 
 double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalculateRewardFor)

@@ -55,14 +55,17 @@ class INET_API ReinforcementLearning : public cSimpleModule, public cListener
     uint32_t current_channel_state[3];
     uint8_t messages_in_last_slot[3];
     int max_messages_in_slot[3];
-    void handleUpdatingTable();
+    uint32_t channels_mask;
+
+    void calculateRewardsForTest();
     void makeAnActionTest();
-    void makeAnActionEpsilonGreedy();
+    
     void updateStates();
+    void handleUpdatingTable();
+    void makeAnActionEpsilonGreedy();
     double calculateReward(struct ActionsInQueue actionToCalculateRewardFor);
 
   protected:
-
     int numberOfPastSlots;
     int numberOfFutureSlots;
     double alpha;
@@ -73,8 +76,17 @@ class INET_API ReinforcementLearning : public cSimpleModule, public cListener
     QTable *qTable = nullptr;
     cMessage *updateTable;
 
-    std::deque<ActionsInQueue> actionsTaken;
+    uint8_t testNumber;
+    cMessage *runTest;
 
+    std::deque<ActionsInQueue> actionsTaken;
+    std::deque<ActionsInQueue> actionsTakenEpsilon;
+    std::deque<ActionsInQueue> actionsTakenRandom;
+
+    cOutVector randomRewardsTest;
+    cOutVector randomChannelsTest;
+    cOutVector epsilonRewardsTest;
+    cOutVector epsilonChannelsTest;
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
