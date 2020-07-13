@@ -150,12 +150,12 @@ void ReinforcementLearning::makeAnActionEpsilonGreedy()
     uint8_t slot;
     if((rand() % 10) < (epsilon * 10)){
         channel = (rand() % 3);
-        slot = rand() % numberOfFutureSlots;
+        slot = rand() % (numberOfFutureSlots + 1); // 8 slots and 1 no action
     }else{
         auto iter = qTable->find(s);
         if(iter == qTable->end()){
             channel = (rand() % 3);
-            slot = rand() % numberOfFutureSlots;
+            slot = rand() % (numberOfFutureSlots + 1);
         }else{
             Actions& action = iter->second;
             channel = action.maxActionChannel;
@@ -194,7 +194,7 @@ void ReinforcementLearning::makeAnActionTest()
     State_t s = std::make_tuple(current_channel_state[0],current_channel_state[1],current_channel_state[2]);
     // Random Agent
     uint8_t randomChannelAction = rand() % 3;
-    uint8_t randomSlot = rand() % numberOfFutureSlots;
+    uint8_t randomSlot = rand() % (numberOfFutureSlots + 1);
     ActionsInQueue actionToInsertRandom;
     actionToInsertRandom.state = s;
     actionToInsertRandom.channel = randomChannelAction;
@@ -207,7 +207,7 @@ void ReinforcementLearning::makeAnActionTest()
     auto iter = qTable->find(s);
     if(iter == qTable->end()){
         channel = (rand() % 3);
-        slot = rand() % numberOfFutureSlots;
+        slot = rand() % (numberOfFutureSlots + 1);
     }else{
         Actions& action = iter->second;
         channel = action.maxActionChannel;
