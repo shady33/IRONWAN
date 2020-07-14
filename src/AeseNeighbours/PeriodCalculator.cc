@@ -92,7 +92,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Exactly 10 elements in the array
                 if(nodePeriodInfo.listOfPeriods.size() == 10){
                     Statistics stats = calculateTValueAndOthers(nodePeriodInfo.listOfPeriods);
-                    if(stats.tValue <= tValue){
+                    if((stats.tValue <= tValue) || (stats.stdev == 0)){
                         nodePeriodInfo.currentPeriod = stats.median;
                         nodePeriodInfo.listOfPeriods.clear();
                     }else{
