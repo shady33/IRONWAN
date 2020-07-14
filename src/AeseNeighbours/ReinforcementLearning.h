@@ -29,12 +29,12 @@ class INET_API ReinforcementLearning : public cSimpleModule, public cListener
       uint8_t slot;
     };
 
-    // Maximum 8 slots in the future
+    // Maximum 8 slots in the future + 1 slot for no action
     struct Actions{
         int maxActionChannel;
         int maxActionSlot;
         int maxActionValue;
-        float action[3][8];
+        float action[3][16];
     };
 
     struct state_hash : public std::unary_function<State_t, std::size_t> {

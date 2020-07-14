@@ -44,7 +44,7 @@ void ReinforcementLearning::initialize(int stage)
         }
         channels_mask = 0;
         for (int i=0;i<numberOfPastSlots;i++)
-            channels_mask = (channels_mask << 4 ) || (0x0F);
+            channels_mask = (channels_mask << 4 ) | (0x0F);
         qTable = new QTable();
 
         testNumber = 0;
@@ -97,7 +97,7 @@ void ReinforcementLearning::updateStates()
 {
     // Update Current Channel State
     for (int i = 0; i < 3; i++) {
-        current_channel_state[i] = ((current_channel_state[i] << 4) || (0x0F && messages_in_last_slot[i])) && channels_mask;
+        current_channel_state[i] = ((current_channel_state[i] << 4) | (0x0F & messages_in_last_slot[i])) & channels_mask;
         if(max_messages_in_slot[i] < messages_in_last_slot[i]) max_messages_in_slot[i] = messages_in_last_slot[i];
         messages_in_last_slot[i] = 0;
     }
@@ -227,11 +227,11 @@ double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalc
         return 0.0;
     
     double reward;
-    uint8_t messages_at_slot = (current_channel_state[actionToCalculateRewardFor.channel] >> ((actionToCalculateRewardFor.slot - 1) * 4)) * (0xF);
+    uint8_t messages_at_slot = (current_channel_state[actionToCalculateRewardFor.channel] >> ((actionToCalculateRewardFor.slot - 1) * 4)) & (0xF);
     if (messages_at_slot > 0){
-        reward = (-2 * messages_at_slot) * ((numberOfFutureSlots-(actionToCalculateRewardFor.slot - 1))/numberOfFutureSlots);
+        reward = (-2.0 * messages_at_slot) * (((double)numberOfFutureSlots-(actionToCalculateRewardFor.slot - 1))/(double)numberOfFutureSlots);
     }else{
-        reward = (1-((actionToCalculateRewardFor.slot - 1)/numberOfFutureSlots));
+        reward = (1.0-((double)(actionToCalculateRewardFor.slot - 1)/(double)numberOfFutureSlots));
     }
     return reward;
 }
