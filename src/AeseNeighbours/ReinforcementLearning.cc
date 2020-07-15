@@ -72,8 +72,10 @@ void ReinforcementLearning::handleMessage(cMessage *msg)
             calculateRewardsForTest();
             makeAnActionTest();
             if(testNumber < 10){
+                testNumber = testNumber + 1;
                 scheduleAt(simTime() + 0.1, runTest);
             }else{
+                testNumber = 0;
                 scheduleAt(simTime() + intuniform(10,100), runTest);
             }
         }
