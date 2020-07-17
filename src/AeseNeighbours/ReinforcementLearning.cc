@@ -126,13 +126,15 @@ void ReinforcementLearning::handleUpdatingTable()
         }else{
             ActionsInQueue nextStateInQueue = actionsTaken.front();
             float maxQValueInNextState = 0.0;
+            float nextQAction = 0.0;
             auto iterNexState = qTable->find(nextStateInQueue.state);
             if( iterNexState != qTable->end() ){
                 Actions& nextStateAct = iterNexState->second;
                 maxQValueInNextState = nextStateAct.maxActionValue;
+                nextQAction = nextStateAct.action[nextStateInQueue.channel][nextStateInQueue.slot];
             }
             Actions& action =  iter->second;
-            float updateValue = ( (1-alpha) * action.action[actInQueue.channel][actInQueue.slot]) + alpha * (calculateReward(actInQueue) + (discountFactor * maxQValueInNextState));
+            float updateValue = ( (1-alpha) * action.action[actInQueue.channel][actInQueue.slot]) + alpha * (calculateReward(actInQueue) + (discountFactor * nextQAction));
             action.action[actInQueue.channel][actInQueue.slot] = updateValue;
             if(updateValue >= action.maxActionValue){
                action.maxActionValue = updateValue;
