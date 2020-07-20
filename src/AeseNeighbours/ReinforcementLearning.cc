@@ -162,8 +162,8 @@ void ReinforcementLearning::handleUpdatingTable()
 void ReinforcementLearning::makeAnActionEpsilonGreedy()
 {
     State_t s = std::make_tuple(current_channel_state[0],current_channel_state[1],current_channel_state[2]);
-    uint8_t channel;
-    uint8_t slot;
+    uint8_t channel = 0;
+    uint8_t slot = 0;
     if((rand() % 10) < (epsilon * 10)){
         channel = (rand() % 3);
         slot = rand() % (numberOfFutureSlots + 1); // 8 slots and 1 no action
@@ -171,7 +171,8 @@ void ReinforcementLearning::makeAnActionEpsilonGreedy()
         auto iter = qTable->find(s);
         if(iter == qTable->end()){
             channel = (rand() % 3);
-            slot = rand() % (numberOfFutureSlots + 1);
+            while(slot == 0)
+                slot = rand() % (numberOfFutureSlots + 1);
         }else{
             Actions& action = iter->second;
             channel = action.maxActionChannel;
