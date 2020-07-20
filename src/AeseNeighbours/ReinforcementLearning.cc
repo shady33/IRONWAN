@@ -25,7 +25,7 @@ void ReinforcementLearning::finish()
         Actions a = elem.second;
         std::cout << '[';
         for(int ch=0;ch<3;ch++)
-            for(int act=0;act<3;act++)
+            for(int act=0;act<numberOfFutureSlots;act++)
                 std::cout << a.action[ch][act] << ',';
         std::cout << "]," << std::endl;
     }
