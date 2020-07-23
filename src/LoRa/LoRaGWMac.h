@@ -68,6 +68,7 @@ public:
     simtime_t freeAfterLast;
 
 protected:
+    int version;
     DevAddr address;
 
     IRadio *radio = nullptr;

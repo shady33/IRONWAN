@@ -55,6 +55,8 @@ OBJS = \
     $O/src/AeseNeighbours/timeOnAir.o \
     $O/src/AeseNeighbours/NodeParams.o \
     $O/src/AeseNeighbours/ReinforcementLearning.o \
+    $O/src/AeseNeighbours/PriorityHandlingAndScheduling.o \
+    $O/src/AeseNeighbours/NeighbourTalkerV2.o \
     $O/src/LoRa/LoRaGWMac.o \
     $O/src/LoRa/LoRaGWRadio.o \
     $O/src/LoRa/LoRaMac.o \
@@ -146,7 +148,7 @@ endif
 # >>>
 # <<<
 #------------------------------------------------------------------------------
-# -fsanitize=address -fno-omit-frame-pointer
+# -fsanitize=address -fno-omit-frame-pointer -- Add to lines 165 and 174
 # Main target
 all: $(TARGET_DIR)/$(TARGET)
 

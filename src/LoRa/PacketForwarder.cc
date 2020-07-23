@@ -228,6 +228,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
             sentMsgs++;
             // timeOfLastPacket = simTime();
             LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
+            frame->setType(MY_ACKS);
             send(frame, "lowerLayerOut");
         // }else{
             // delete msg;

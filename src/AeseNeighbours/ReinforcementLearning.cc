@@ -18,18 +18,18 @@ ReinforcementLearning::~ReinforcementLearning()
 
 void ReinforcementLearning::finish()
 {
-    std::cout << "==============" << std::endl;
-    for(auto elem: *qTable){
-        State_t s = elem.first;
-        std::cout << '"' << std::get<0>(s) << ',' << std::get<1>(s) << ',' << std::get<2>(s) << '"' << ':';
-        Actions a = elem.second;
-        std::cout << '[';
-        for(int ch=0;ch<3;ch++)
-            for(int act=0;act<numberOfFutureSlots;act++)
-                std::cout << a.action[ch][act] << ',';
-        std::cout << "]," << std::endl;
-    }
-    std::cout << "==============" << std::endl;
+    // std::cout << "==============" << std::endl;
+    // for(auto elem: *qTable){
+    //     State_t s = elem.first;
+    //     std::cout << '"' << std::get<0>(s) << ',' << std::get<1>(s) << ',' << std::get<2>(s) << '"' << ':';
+    //     Actions a = elem.second;
+    //     std::cout << '[';
+    //     for(int ch=0;ch<3;ch++)
+    //         for(int act=0;act<numberOfFutureSlots;act++)
+    //             std::cout << a.action[ch][act] << ',';
+    //     std::cout << "]," << std::endl;
+    // }
+    // std::cout << "==============" << std::endl;
     cancelAndDelete(updateTable);
 }
 
@@ -41,11 +41,6 @@ void ReinforcementLearning::initialize(int stage)
         alpha = par("alphaRL");
         discountFactor = par("discountFactor");
         epsilon = par("epsilon");
-
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
-        // std::uniform_real_distribution<> dis(0, 1);
-        // dis(gen)
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
         updateTable = new cMessage("UpdateTableAndTakeAction");
         scheduleAt(simTime() + 0.1, updateTable);
@@ -235,6 +230,26 @@ void ReinforcementLearning::makeAnActionTest()
     actionToInsertEpsilon.channel = channel;
     actionToInsertEpsilon.slot = slot;
     actionsTakenEpsilon.push_back(actionToInsertEpsilon);
+}
+
+ReinforcementLearning::ActionChosen ReinforcementLearning::whichSlotDoIUse()
+{
+    ActionChosen act;
+    State_t s = std::make_tuple(current_channel_state[0],current_channel_state[1],current_channel_state[2]);
+    uint8_t channel;
+    uint8_t slot;
+    auto iter = qTable->find(s);
+    if(iter == qTable->end()){
+        channel = (rand() % 3);
+        slot = rand() % (numberOfFutureSlots + 1);
+    }else{
+        Actions& action = iter->second;
+        channel = action.maxActionChannel;
+        slot = action.maxActionSlot;
+    }
+    act.channel = channel;
+    act.slot = slot;
+    return act;
 }
 
 double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalculateRewardFor)

@@ -28,6 +28,15 @@ class noncobject inet::units::values::Hz;
 
 namespace inet;
 
+enum MessagesTypesAndPriority
+{
+    MY_ACKS = 1;
+    ACCEPTED_BIDS_ACKS = 2;
+    FIND_NEIGHBOURS_FOR_DOWNLINK=3;
+    FIND_NEIGHBOURS_FOR_UPLINK=4;
+    SEND_ACCEPT_BIDS_FOR_NEIGHBOURS=5;
+}
+
 enum MacPacketType
 {
     JOIN_REQUEST = 0;
@@ -37,6 +46,7 @@ enum MacPacketType
     ACTUATION = 4;
     GW_PING_MESSAGE = 5;
     ACK_ADR_PACKET = 6;
+    GW_HANDOFF_MESSAGE = 7;
 }
 
 enum CollisionInfo
@@ -75,4 +85,5 @@ packet LoRaMacFrame {
     bool confirmedMessage;
 
     simtime_t sendingTime;
+    int type @enum(MessagesTypesAndPriority);
 }

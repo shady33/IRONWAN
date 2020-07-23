@@ -142,8 +142,8 @@ void SimpleLoRaApp::finish()
     // std::cout << "Number of generated packets:" << sentPackets << std::endl;
     // std::cout << getParentModule() << numberOfAcks << std::endl;
     // std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
+    // std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
     cModule *host = getContainingNode(this);
-//    StationaryMobility *mobility = check_and_cast<StationaryMobility *>(host->getSubmodule("mobility"));
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
     Coord coord = mobility->getCurrentPosition();
     recordScalar("positionX", coord.x);
@@ -151,7 +151,7 @@ void SimpleLoRaApp::finish()
     recordScalar("finalTP", loRaTP);
     recordScalar("finalSF", loRaSF);
     recordScalar("sentPackets", sentPackets);
-    if(retryLimit > 1)
+    if(retryLimit > 0)
         recordScalar("AckedPacketsTx", sentPackets);
     else
         recordScalar("UnAckedPacketsTx", sentPackets);
@@ -267,7 +267,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
-    if(retryLimit > 1){
+    if(retryLimit > 0){
         numberOfAcks += 1;
         cancelEvent(retryMeasurements);
         e2edelay.record(simTime()-startTime);

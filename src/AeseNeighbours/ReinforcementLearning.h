@@ -31,9 +31,9 @@ class INET_API ReinforcementLearning : public cSimpleModule, public cListener
 
     // Maximum 8 slots in the future + 1 slot for no action
     struct Actions{
-        int maxActionChannel;
-        int maxActionSlot;
-        int maxActionValue;
+        uint8_t maxActionChannel;
+        uint8_t maxActionSlot;
+        float maxActionValue;
         float action[3][16];
     };
 
@@ -97,6 +97,13 @@ class INET_API ReinforcementLearning : public cSimpleModule, public cListener
 
   public:
     virtual ~ReinforcementLearning();
+
+    struct ActionChosen {
+      uint8_t channel;
+      uint8_t slot;
+    };
+
+    ActionChosen whichSlotDoIUse();
 };
 }
 #endif

@@ -58,6 +58,13 @@ void LoRaGWMac::initialize(int stage)
     }
     else if (stage == INITSTAGE_LINK_LAYER) {
         radio->setRadioMode(IRadio::RADIO_MODE_TRANSCEIVER);
+        version = 1;
+        std::string moduleType((getParentModule()->getParentModule())->getComponentType()->getFullName());
+        if(moduleType.compare("loranetwork.AeseNeighbours.LoRaAeseGW") == 0){
+            version = 1;
+        }else{
+            version = 2;
+        }
     }
 }
 
@@ -76,20 +83,6 @@ void LoRaGWMac::finish()
 InterfaceEntry *LoRaGWMac::createInterfaceEntry()
 {
     InterfaceEntry *e = new InterfaceEntry(this);
-
-    // data rate
-    //e->setDatarate(bitrate);
-
-    // generate a link-layer address to be used as interface token for IPv6
-    //e->setMACAddress(address);
-    //e->setInterfaceToken(address.formInterfaceIdentifier());
-
-    // capabilities
-    //e->setMtu(par("mtu"));
-    //e->setMulticast(true);
-    //e->setBroadcast(true);
-    //e->setPointToPoint(false);
-
     return e;
 }
 
@@ -119,39 +112,48 @@ void LoRaGWMac::handleSelfMessage(cMessage *msg)
 
 void LoRaGWMac::handleUpperPacket(cPacket *msg)
 {
-    LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
-    frame->removeControlInfo();
-    simtime_t sendingTime = frame->getSendingTime();
+    if(version == 1){
+        LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
+        frame->removeControlInfo();
+        simtime_t sendingTime = frame->getSendingTime();
 
-    if(sendingTime >= freeAfterCurrent){
-        int PayloadLength = frame->getPayloadLength();
-        if(PayloadLength == 0)
-            PayloadLength = 20;
+        if(sendingTime >= freeAfterCurrent){
+            int PayloadLength = frame->getPayloadLength();
+            if(PayloadLength == 0)
+                PayloadLength = 20;
+            LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
+            ctrl->setSrc(address);
+            ctrl->setDest(frame->getReceiverAddress());
+            frame->setControlInfo(ctrl);
+            double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+            sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame->getReceiverAddress(),frame);
+            if(sendMessageFromQueue->isScheduled()){
+            if(sendMessageFromQueue->getArrivalTime() > sendingTime){
+                    cancelEvent(sendMessageFromQueue);
+                    scheduleAt(sendingTime,sendMessageFromQueue);
+                    freeAfterLast = freeAfterCurrent;
+                    freeAfterCurrent = sendingTime + (delta * 10);
+            }
+            }
+            else{
+                scheduleAt(sendingTime,sendMessageFromQueue);
+                freeAfterLast = freeAfterCurrent;
+                freeAfterCurrent = sendingTime + (delta * 10);
+            }
+
+            std::string addrStrwithId = (frame->getReceiverAddress()).str();
+            addrStrwithId += ":";
+            addrStrwithId += std::to_string(frame->getSequenceNumber());
+            emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
+        } else delete msg;
+    }else if(version == 2){
+        LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
         LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
         ctrl->setSrc(address);
         ctrl->setDest(frame->getReceiverAddress());
         frame->setControlInfo(ctrl);
-        double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-        sendingQueue.emplace_back(sendingTime,sendingTime+(delta*10),frame->getReceiverAddress(),frame);
-        if(sendMessageFromQueue->isScheduled()){
-           if(sendMessageFromQueue->getArrivalTime() > sendingTime){
-                cancelEvent(sendMessageFromQueue);
-                scheduleAt(sendingTime,sendMessageFromQueue);
-                freeAfterLast = freeAfterCurrent;
-                freeAfterCurrent = sendingTime + (delta * 10);
-           }
-        }
-        else{
-            scheduleAt(sendingTime,sendMessageFromQueue);
-            freeAfterLast = freeAfterCurrent;
-            freeAfterCurrent = sendingTime + (delta * 10);
-        }
-
-        std::string addrStrwithId = (frame->getReceiverAddress()).str();
-        addrStrwithId += ":";
-        addrStrwithId += std::to_string(frame->getSequenceNumber());
-        emit(GW_TRANSMITTED_PACKET,addrStrwithId.c_str());
-    } else delete msg;
+        sendDown(frame);
+    }
 }
 
 // LAKSH: Filtering of packets has been stopped
@@ -164,12 +166,18 @@ void LoRaGWMac::handleLowerPacket(cPacket *msg)
         int channelNumber = ((frame->getLoRaCF() - inet::units::values::Hz(868100000))/inet::units::values::Hz(200000)).get();
         usedTimes[channelNumber] = usedTimes[channelNumber] + delta;
     }
-
     // sendUp(frame);
-    if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
-        sendUp(frame);
-    else
-        delete frame;
+    if(version == 1){
+        if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS)
+            sendUp(frame);
+        else
+            delete frame;
+    }else if(version == 2){
+        if((frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS) || (frame->getReceiverAddress() == address))
+            sendUp(frame);
+        else
+            delete frame;
+    }
 }
 
 void LoRaGWMac::sendPacketBack(LoRaMacFrame *receivedFrame)
