@@ -18,8 +18,6 @@ void PriorityHandlingAndScheduling::finish()
 bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
 {
     bool scheduled = false;
-    if(rand()%10 <2)
-        return scheduled;
     LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
     frame->removeControlInfo();
     simtime_t sendingTime = frame->getSendingTime();
