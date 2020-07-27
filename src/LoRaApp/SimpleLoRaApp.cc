@@ -142,7 +142,7 @@ void SimpleLoRaApp::finish()
     // std::cout << "Number of generated packets:" << sentPackets << std::endl;
     // std::cout << getParentModule() << numberOfAcks << std::endl;
     // std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
-    // std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
+    std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
     cModule *host = getContainingNode(this);
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
     Coord coord = mobility->getCurrentPosition();

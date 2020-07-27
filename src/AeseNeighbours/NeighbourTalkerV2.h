@@ -137,7 +137,9 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
     // void checkConfirmationAndDelete(DevAddr addr);
     void handleFailedAcks(LoRaMacFrame *frame);
     void forwardToOthers(LoRaMacFrame *frame);
-
+    void handlePeriodIn(cPacket *pkt);
+    void handleFindNeighboursForUplink(cPacket *pkt);
+    
   public:
     virtual ~NeighbourTalkerV2();
     void handleLowerLayer(cPacket* pkt);

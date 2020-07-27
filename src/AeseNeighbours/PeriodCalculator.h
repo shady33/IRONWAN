@@ -7,6 +7,7 @@
 #include "LoRaMacFrame_m.h"
 #include "DevAddrMessage_m.h"
 #include "AeseAppPacket_m.h"
+#include "NeighbourTalkerMessage_m.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -14,7 +15,7 @@
 #include <numeric>
 #include <cmath>
 #include <deque>
-
+#include "PacketForwarder.h"
 
 namespace inet {
 
@@ -54,7 +55,7 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
 
     typedef std::map<DevAddr, NodePeriodInfo, DevAddr_compare> NodePeriodsStruct;
     NodePeriodsStruct *NodePeriodsList = nullptr;
-
+    int gwNSNumber;
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
@@ -62,7 +63,7 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     virtual std::string str() const override { return "PeriodCalculator"; };
     void handleLoRaFrame(cPacket *pkt);
-
+    void transmitFindRequest(DevAddr txAddr,int lastSeqNo);
   public:
     virtual ~PeriodCalculator();
 };

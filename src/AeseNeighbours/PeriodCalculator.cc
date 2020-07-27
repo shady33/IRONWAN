@@ -23,10 +23,10 @@ void PeriodCalculator::finish()
 void PeriodCalculator::initialize(int stage)
 {
     if (stage == 0) {
-        
-    }else if (stage == INITSTAGE_APPLICATION_LAYER) {
         tValue = par("tValue"); 
         NodePeriodsList = new NodePeriodsStruct();
+    }else if (stage == INITSTAGE_APPLICATION_LAYER) {
+        gwNSNumber = (check_and_cast<PacketForwarder *>(getParentModule()->getSubmodule("packetForwarder")))->getGatewayNsNumber();
     }
 }
 
@@ -38,13 +38,12 @@ void PeriodCalculator::handleMessage(cMessage *msg)
         if(className.compare("inet::LoRaMacFrame") == 0)
             handleLoRaFrame(PK(msg));
     }else if(msg->isSelfMessage()){
-        std::cout << msg->getClassName() << std::endl;
         if(!strcmp(msg->getName(),"MessageNotReceivedFindIt")){
             DevAddr addr = check_and_cast<DevAddrMessage*>(msg)->getAddr();
-            std::cout << "Message Failed for:" << addr << " should we find it?" << std::endl;
-
             auto iter = NodePeriodsList->find(addr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
+            std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
+            transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
             scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
         }
     }else delete msg;
@@ -53,7 +52,7 @@ void PeriodCalculator::handleMessage(cMessage *msg)
 void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(pkt);
-    if((frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS) && (frame->getMsgType() != GW_PING_MESSAGE)){
+    if((frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS) && (frame->getMsgType() != GW_PING_MESSAGE) && (frame->getTransmitterAddress().getAddressByte(0) == gwNSNumber)){
         // This is a Broadcast packet, and we are only interested in uplinks from nodes
         DevAddr txAddr = frame->getTransmitterAddress();
         auto iter = NodePeriodsList->find(txAddr);
@@ -129,6 +128,14 @@ PeriodCalculator::Statistics PeriodCalculator::calculateTValueAndOthers(const st
    stats.stdev = std::sqrt(stats.stdev/deque.size());
    stats.tValue = (stats.mean - stats.median)/(stats.stdev * std::sqrt(deque.size()));
    return stats;
+}
+
+void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo)
+{
+    NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
+    pkt->setDeviceAddress(txAddr);
+    pkt->setSequenceNumber(lastSeqNo);    
+    send(pkt,"lowerLayerOut");
 }
 
 }

@@ -18,6 +18,7 @@ ReinforcementLearning::~ReinforcementLearning()
 
 void ReinforcementLearning::finish()
 {
+    /*
     std::cout << "==============" << std::endl;
     for(auto elem: *qTable){
          State_t s = elem.first;
@@ -31,6 +32,7 @@ void ReinforcementLearning::finish()
     }
     std::cout << "==============" << std::endl;
     cancelAndDelete(updateTable);
+    */
 }
 
 void ReinforcementLearning::initialize(int stage)

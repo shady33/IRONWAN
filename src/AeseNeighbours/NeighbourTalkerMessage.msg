@@ -26,4 +26,5 @@ packet NeighbourTalkerMessage {
     double RSSI;
 
     DevAddr deviceAddress;
+    int sequenceNumber;
 }

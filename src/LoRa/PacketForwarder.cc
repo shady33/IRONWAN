@@ -119,7 +119,7 @@ void PacketForwarder::initialize(int stage)
         actualCntValues.setName("listOfCntValues");
 	    macCntValues.setName("listOfMacCntValues");
 
-	if(enableDQ){
+	    if(enableDQ){
             CRQVector.setName("CRQVector");
             DTQVector.setName("DTQVector");
             dataReceived.setName("ReceivedQueue");
@@ -178,9 +178,9 @@ void PacketForwarder::startUDP()
     if(sendToAll == 0){
         const char *destAddrs = par("destAddresses");
         if ((destAddrs != NULL) && (destAddrs[0] == '\0')) {
-             std::stringstream ss;
-             ss << "networkServer[" << gwNSNumber << "]";
-             destAddrsString = ss.str();
+            std::stringstream ss;
+            ss << "networkServer[" << gwNSNumber << "]";
+            destAddrsString = ss.str();
         }
     }else{
         std::stringstream ss;
@@ -778,6 +778,11 @@ void PacketForwarder::CountUniqueNodes(LoRaMacFrame* pkt)
         // knownNodes[nodeIndex].historyAllRSSI->record(pkt->getRSSI());
         // knownNodes[nodeIndex].receivedSeqNumber->record(pkt->getSequenceNumber());
     }
+}
+
+int PacketForwarder::getGatewayNsNumber()
+{
+    return gwNSNumber;
 }
 
 } //namespace inet

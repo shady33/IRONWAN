@@ -40,8 +40,12 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
 
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
-        LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
+        // LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
         handleLowerLayer(PK(msg));
+    }else if(msg->arrivedOn("periodIn")){
+        if(AeseGWMode != NO_NEIGHBOUR){
+            handlePeriodIn(PK(msg));
+        }
     }
     
     // else if(msg->arrivedOn("udpIn")){
@@ -108,10 +112,14 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
         // need to schedule my failed acks
         //handleFailedAcks(frame);
     	if (AeseGWMode == NO_NEIGHBOUR){
-		delete frame;
-	}else if(AeseGWMode == ALL_NEIGHBOUR){
-		handleFailedAcks(frame);
-	}
+	    	delete frame;
+	    }else if(AeseGWMode == ALL_NEIGHBOUR){
+		    handleFailedAcks(frame);
+	    }
+    }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){
+        std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
+        handleFindNeighboursForUplink(frame->decapsulate());
+        delete frame;
     }else{
         // Message from phy layer
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
@@ -163,6 +171,32 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
     // frame->removeControlInfo();
 }
 
+// We check if we can transmit a period finder message, append and then send
+void NeighbourTalkerV2::handlePeriodIn(cPacket *pkt)
+{
+    ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
+    simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
+    bool scheduled = scheduler->canThisBeScehduled(0,FIND_NEIGHBOURS_FOR_UPLINK,sendingTime);
+    if(scheduled){
+        LoRaMacFrame *msg = new LoRaMacFrame("FIND_NEIGHBOURS_FOR_UPLINK");
+        msg->encapsulate(pkt);
+        inet::units::values::Hz bw = inet::units::values::Hz(125000);
+        inet::units::values::Hz freq = inet::units::values::Hz((act.channel * 200000) + 868100000);
+        msg->setMsgType(GW_HANDOFF_MESSAGE);
+        msg->setType(FIND_NEIGHBOURS_FOR_UPLINK);
+        msg->setPayloadLength(10);
+        msg->setLoRaCF(freq);
+        msg->setLoRaSF(7);
+        msg->setLoRaBW(bw);
+        msg->setLoRaCR(1);
+        msg->setReceiverAddress(DevAddr::BROADCAST_ADDRESS);
+        msg->setSendingTime(sendingTime);
+        send(msg,"lowerLayerOut");
+        std::cout << "FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
+    }else delete pkt;  
+}
+
+
 // LAKSH: this should check if it can be handled. 
 // if yes, find slot and channel and then broadcast it
 void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
@@ -189,6 +223,34 @@ void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
         send(msg,"lowerLayerOut");
     }else delete frame;
 }
+
+void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
+{
+    NeighbourTalkerMessage *frame = check_and_cast<NeighbourTalkerMessage*>(pkt);    
+    auto iter = ReceivedPacketsList->find(frame->getDeviceAddress());
+    // Do I know this node?
+    if(iter != ReceivedPacketsList->end()){
+        int lastSeenSeqNo  = (iter->second).lastSeqNo;
+        // I have a newer packet
+        if(lastSeenSeqNo > frame->getSequenceNumber()){
+            auto insertionTime = (iter->second).insertionTime;
+            // Have I seen the node in last 2 seconds?
+            if(simTime() - insertionTime < 2){
+                ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
+                simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
+                bool scheduled = scheduler->canThisBeScehduled(0,SEND_ACCEPT_BIDS_FOR_NEIGHBOURS,sendingTime);
+                if(scheduled){
+                    auto f = (iter->second).frame;
+                    f->setType(SEND_ACCEPT_BIDS_FOR_NEIGHBOURS);
+                    f->setSendingTime(sendingTime);
+                    send(f,"lowerLayerOut");
+                }
+            }
+        }
+    }
+    delete pkt;
+}
+
 
 // void NeighbourTalkerV2::sendConfirmationToNeighbour(cPacket* pkt)
 // {

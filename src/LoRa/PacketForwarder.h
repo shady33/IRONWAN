@@ -104,6 +104,8 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int numberOfNS;
     int gwNSNumber;
     int sentMsgs;
+    int counterOfSentPacketsFromNodes = 0;
+    int counterOfReceivedPackets = 0;
   protected:
     std::vector<L3Address> destAddresses;
     std::vector<L3Address> gwAddresses;
@@ -135,12 +137,11 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     void updateAndLogNode(LoRaMacFrame* pkt);
     void CountUniqueNodes(LoRaMacFrame* pkt);
     void GWinGrid();
-
+    
   public:
     virtual ~PacketForwarder();
+    int getGatewayNsNumber();
     simsignal_t LoRa_GWPacketReceived;
-    int counterOfSentPacketsFromNodes = 0;
-    int counterOfReceivedPackets = 0;
 };
 } //namespace inet
 #endif

@@ -62,7 +62,7 @@ bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
 void PriorityHandlingAndScheduling::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
-    if(frame->getMsgType() == GW_HANDOFF_MESSAGE){
+    if((frame->getMsgType() == GW_HANDOFF_MESSAGE)){
         send(msg,"neighbourTalkerOut");
     }else{
         cPacket *clone = msg->dup();
