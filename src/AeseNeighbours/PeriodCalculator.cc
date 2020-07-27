@@ -14,7 +14,7 @@ void PeriodCalculator::finish()
     auto iter = NodePeriodsList->begin();
     while(iter != NodePeriodsList->end()) {
         NodePeriodInfo& nodePeriodInfo = iter->second;
-        delete nodePeriodInfo.msg;
+        cancelAndDelete(nodePeriodInfo.msg);
         delete nodePeriodInfo.allPeriods;
         iter++;
     }
@@ -38,13 +38,14 @@ void PeriodCalculator::handleMessage(cMessage *msg)
         if(className.compare("inet::LoRaMacFrame") == 0)
             handleLoRaFrame(PK(msg));
     }else if(msg->isSelfMessage()){
+        std::cout << msg->getClassName() << std::endl;
         if(!strcmp(msg->getName(),"MessageNotReceivedFindIt")){
             DevAddr addr = check_and_cast<DevAddrMessage*>(msg)->getAddr();
             std::cout << "Message Failed for:" << addr << " should we find it?" << std::endl;
 
             auto iter = NodePeriodsList->find(addr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
-            // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
+            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
         }
     }else delete msg;
 }
@@ -103,7 +104,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Start a timer if we can do the period stuff here
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
-                    // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
+                    scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
                 }
             }
             delete packet;
