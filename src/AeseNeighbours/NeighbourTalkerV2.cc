@@ -106,7 +106,12 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(pkt);
     if(frame->getType() == MY_ACKS){
         // need to schedule my failed acks
-        handleFailedAcks(frame);
+        //handleFailedAcks(frame);
+    	if (AeseGWMode == NO_NEIGHBOUR){
+		delete frame;
+	}else if(AeseGWMode == ALL_NEIGHBOUR){
+		handleFailedAcks(frame);
+	}
     }else{
         // Message from phy layer
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){

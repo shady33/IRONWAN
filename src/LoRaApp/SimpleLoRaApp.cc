@@ -146,6 +146,7 @@ void SimpleLoRaApp::finish()
     cModule *host = getContainingNode(this);
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
     Coord coord = mobility->getCurrentPosition();
+    recordScalar("PDR",((float)numberOfAcks)/((float)sentPackets));
     recordScalar("positionX", coord.x);
     recordScalar("positionY", coord.y);
     recordScalar("finalTP", loRaTP);

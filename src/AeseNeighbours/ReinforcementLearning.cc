@@ -18,18 +18,18 @@ ReinforcementLearning::~ReinforcementLearning()
 
 void ReinforcementLearning::finish()
 {
-    // std::cout << "==============" << std::endl;
-    // for(auto elem: *qTable){
-    //     State_t s = elem.first;
-    //     std::cout << '"' << std::get<0>(s) << ',' << std::get<1>(s) << ',' << std::get<2>(s) << '"' << ':';
-    //     Actions a = elem.second;
-    //     std::cout << '[';
-    //     for(int ch=0;ch<3;ch++)
-    //         for(int act=0;act<numberOfFutureSlots;act++)
-    //             std::cout << a.action[ch][act] << ',';
-    //     std::cout << "]," << std::endl;
-    // }
-    // std::cout << "==============" << std::endl;
+    std::cout << "==============" << std::endl;
+    for(auto elem: *qTable){
+         State_t s = elem.first;
+         std::cout << '"' << std::get<0>(s) << ',' << std::get<1>(s) << ',' << std::get<2>(s) << '"' << ':';
+         Actions a = elem.second;
+         std::cout << '[';
+         for(int ch=0;ch<3;ch++)
+             for(int act=0;act<numberOfFutureSlots;act++)
+                 std::cout << a.action[ch][act] << ',';
+         std::cout << "]," << std::endl;
+    }
+    std::cout << "==============" << std::endl;
     cancelAndDelete(updateTable);
 }
 
@@ -79,7 +79,7 @@ void ReinforcementLearning::handleMessage(cMessage *msg)
             calculateRewardsForTest();
             makeAnActionTest();
             if(testNumber < 10){
-                testNumber = testNumber + 1;
+                //testNumber = testNumber + 1;
                 scheduleAt(simTime() + 0.1, runTest);
             }else{
                 testNumber = 0;
