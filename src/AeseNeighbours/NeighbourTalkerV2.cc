@@ -248,13 +248,13 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
                 bool scheduled = scheduler->canThisBeScehduled(0,SEND_ACCEPT_BIDS_FOR_NEIGHBOURS,sendingTime);
                 if(scheduled){
                     auto f = (iter->second).frame;
-                    std::cout << f << std::endl;
-                    f->setType(SEND_ACCEPT_BIDS_FOR_NEIGHBOURS);
+                    auto frameToSend = f->dup();
+                    frameToSend->setType(SEND_ACCEPT_BIDS_FOR_NEIGHBOURS);
                     inet::units::values::Hz freq = inet::units::values::Hz((act.channel * 200000) + 868100000);
-                    f->setLoRaCF(freq);
-                    f->setSendingTime(sendingTime);
+                    frameToSend->setLoRaCF(freq);
+                    frameToSend->setSendingTime(sendingTime);
                     rebroadcastingAnUplink = rebroadcastingAnUplink + 1;
-                    send(f,"lowerLayerOut");
+                    send(frameToSend,"lowerLayerOut");
                 }
             }
         }
