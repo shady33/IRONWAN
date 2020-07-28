@@ -119,7 +119,11 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
     long failedBids;
     long requestedBids;
     long acceptedBids;
-
+    long transmittedSomeoneDownlink;
+    long transmittedPeriodIn;
+    long rebroadcastingAnUplink;
+    long requestedSomeoneToForwardAck;
+    
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;

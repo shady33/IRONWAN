@@ -45,6 +45,7 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
       simtime_t lastReceivedTime;
       int lastSeqNo;
       int numberOfMessagesSeen;
+      int timesTried;
       std::deque<double> listOfPeriods;
       cOutVector *allPeriods;
       DevAddrMessage *msg;
@@ -56,6 +57,8 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
     typedef std::map<DevAddr, NodePeriodInfo, DevAddr_compare> NodePeriodsStruct;
     NodePeriodsStruct *NodePeriodsList = nullptr;
     int gwNSNumber;
+    int requestedperiods;
+    int AeseGWMode;
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;

@@ -82,6 +82,11 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
 
 void NeighbourTalkerV2::finish()
 {
+    recordScalar("TransmittedSomeoneDownlink",transmittedSomeoneDownlink);
+    recordScalar("TransmittedPeriodIn",transmittedPeriodIn);
+    recordScalar("RebroadcastingAnUplink",rebroadcastingAnUplink);
+    recordScalar("RequestedSomeoneToForwardAck",requestedSomeoneToForwardAck);
+
     recordScalar("RequestedBids",requestedBids);
     recordScalar("AcceptedBids",acceptedBids);
     recordScalar("FailedBids",failedBids);
@@ -117,7 +122,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
 		    handleFailedAcks(frame);
 	    }
     }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){
-        std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
+        // std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
         handleFindNeighboursForUplink(frame->decapsulate());
         delete frame;
     }else{
@@ -156,6 +161,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                     ReceivedPacket& rxPkt = iter->second;
                     if(((simTime() - rxPkt.insertionTime) < 2) && (scheduler->canThisBeScehduled(1,ACCEPTED_BIDS_ACKS,msg->getSendingTime()))){
                         // Decapsulate and add the correct type
+                        transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
                         send(msg->dup(),"lowerLayerOut");
                     }
                 }
@@ -191,8 +197,8 @@ void NeighbourTalkerV2::handlePeriodIn(cPacket *pkt)
         msg->setLoRaCR(1);
         msg->setReceiverAddress(DevAddr::BROADCAST_ADDRESS);
         msg->setSendingTime(sendingTime);
+        transmittedPeriodIn = transmittedPeriodIn + 1;
         send(msg,"lowerLayerOut");
-        std::cout << "FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
     }else delete pkt;  
 }
 
@@ -220,6 +226,7 @@ void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
         msg->setReceiverAddress(DevAddr::BROADCAST_ADDRESS);
         msg->setPayloadLength(frame->getPayloadLength() + 2);
         msg->setSendingTime(sendingTime);
+        requestedSomeoneToForwardAck = requestedSomeoneToForwardAck + 1;
         send(msg,"lowerLayerOut");
     }else delete frame;
 }
@@ -241,8 +248,12 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
                 bool scheduled = scheduler->canThisBeScehduled(0,SEND_ACCEPT_BIDS_FOR_NEIGHBOURS,sendingTime);
                 if(scheduled){
                     auto f = (iter->second).frame;
+                    std::cout << f << std::endl;
                     f->setType(SEND_ACCEPT_BIDS_FOR_NEIGHBOURS);
+                    inet::units::values::Hz freq = inet::units::values::Hz((act.channel * 200000) + 868100000);
+                    f->setLoRaCF(freq);
                     f->setSendingTime(sendingTime);
+                    rebroadcastingAnUplink = rebroadcastingAnUplink + 1;
                     send(f,"lowerLayerOut");
                 }
             }

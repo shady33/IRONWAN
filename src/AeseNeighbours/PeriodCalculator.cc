@@ -6,11 +6,6 @@ Define_Module(PeriodCalculator);
 
 PeriodCalculator::~PeriodCalculator()
 {
-
-}
-
-void PeriodCalculator::finish()
-{
     auto iter = NodePeriodsList->begin();
     while(iter != NodePeriodsList->end()) {
         NodePeriodInfo& nodePeriodInfo = iter->second;
@@ -20,11 +15,18 @@ void PeriodCalculator::finish()
     }
 }
 
+void PeriodCalculator::finish()
+{
+    recordScalar("RequestedPeriods",requestedperiods);
+}
+
 void PeriodCalculator::initialize(int stage)
 {
     if (stage == 0) {
         tValue = par("tValue"); 
         NodePeriodsList = new NodePeriodsStruct();
+        requestedperiods = 0;
+        AeseGWMode = (int)par("AeseGWMode");
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
         gwNSNumber = (check_and_cast<PacketForwarder *>(getParentModule()->getSubmodule("packetForwarder")))->getGatewayNsNumber();
     }
@@ -42,9 +44,11 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             DevAddr addr = check_and_cast<DevAddrMessage*>(msg)->getAddr();
             auto iter = NodePeriodsList->find(addr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
-            std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
+            // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
             transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
-            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
+            nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
+            if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
         }
     }else delete msg;
 }
@@ -103,7 +107,8 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Start a timer if we can do the period stuff here
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
-                    scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
+                    if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
                 }
             }
             delete packet;
@@ -132,10 +137,13 @@ PeriodCalculator::Statistics PeriodCalculator::calculateTValueAndOthers(const st
 
 void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo)
 {
-    NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
-    pkt->setDeviceAddress(txAddr);
-    pkt->setSequenceNumber(lastSeqNo);    
-    send(pkt,"lowerLayerOut");
+    if(AeseGWMode > 0){
+        NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
+        pkt->setDeviceAddress(txAddr);
+        pkt->setSequenceNumber(lastSeqNo);
+        requestedperiods = requestedperiods + 1;
+        send(pkt,"lowerLayerOut");
+    }
 }
 
 }

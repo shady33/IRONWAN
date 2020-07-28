@@ -6,13 +6,13 @@ Define_Module(PriorityHandlingAndScheduling);
 
 PriorityHandlingAndScheduling::~PriorityHandlingAndScheduling()
 {
-
+    cancelAndDelete(sendMessageFromQueue0);
+    cancelAndDelete(sendMessageFromQueue1);
 }
 
 void PriorityHandlingAndScheduling::finish()
 {
-    cancelAndDelete(sendMessageFromQueue0);
-    cancelAndDelete(sendMessageFromQueue1);
+
 }
 
 bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
@@ -37,24 +37,35 @@ bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
     
     double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
     
+    if(sendingTime < simTime()) return scheduled;
+    // Check if the sending time is after the free time
     if((sendingTime >= freeAfterCurrent[band])){
         scheduled = true;
     }else{
-        // A packet already scheduled has lower priority
-        if((frame->getType() < lastPriority[band]) && (simTime() < sendMessageFromQueue0->getArrivalTime())){
+        // Check if new packet is more important than last scheduled and last scheduled has not been transmitted
+        if((frame->getType() < lastPriority[band]) && (simTime() < sendTimer->getArrivalTime())){
             scheduled = true;
         }
     }
     if(scheduled){
+        // If a packet can be scheduled, push to queue
+        // Check if a packet is scheduled
+        // If it is scheduled, is its arrival time after my sending time,
+        // If yes, delete and add mine
+        // If no packet is scheduled, schedule a new one
         sendingQueue[band].emplace_back(sendingTime,sendingTime+(delta*waitTime),(MessagesTypesAndPriority)frame->getType(),frame->getReceiverAddress(),frame);
         if(sendTimer->isScheduled()){
             if(sendTimer->getArrivalTime() > sendingTime){
                 cancelEvent(sendTimer);
+                scheduleAt(sendingTime,sendTimer);
+                lastPriority[band] = frame->getType();
+                freeAfterCurrent[band] = sendingTime + (delta * waitTime);
             }
+        }else{
+            scheduleAt(sendingTime,sendTimer);
+            lastPriority[band] = frame->getType();
+            freeAfterCurrent[band] = sendingTime + (delta * waitTime);
         }
-        scheduleAt(sendingTime,sendTimer);
-        lastPriority[band] = frame->getType();
-        freeAfterCurrent[band] = sendingTime + (delta * waitTime);
     }
     return scheduled;
 }
@@ -114,15 +125,23 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
                 }
             }
             if(!sendingQueue[band].empty()) {
-                auto elementinQueue = sendingQueue[band].front();
-                LoRaMacFrame* frame = (elementinQueue).frame;
+                LoRaMacFrame* frame;
+                simtime_t lastTime = SIMTIME_MAX;
+                for(auto& it : sendingQueue[band]){
+                    if((it.sendingTime > simTime()) && (it.sendingTime < lastTime)){
+                        frame = it.frame;
+                        lastTime = it.sendingTime;
+                    }
+                }
+                // auto elementinQueue = sendingQueue[band].front();
+                // LoRaMacFrame* frame = (elementinQueue).frame;
                 int PayloadLength = frame->getPayloadLength();
                 if(PayloadLength == 0)
                     PayloadLength = 20;
                 double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-                freeAfterCurrent[band] = elementinQueue.sendingTime + (delta * 10);
+                freeAfterCurrent[band] = lastTime + (delta * 10);
                 lastPriority[band] = frame->getType();
-                scheduleAt((elementinQueue.sendingTime),msg);
+                scheduleAt(lastTime,msg);
             }
         }
     }else delete msg;
