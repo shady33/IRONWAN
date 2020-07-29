@@ -43,7 +43,7 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
         // LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
         handleLowerLayer(PK(msg));
     }else if(msg->arrivedOn("periodIn")){
-        if(AeseGWMode != NO_NEIGHBOUR){
+        if(AeseGWMode > ALL_NEIGHBOUR){
             handlePeriodIn(PK(msg));
         }
     }
@@ -118,7 +118,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
         //handleFailedAcks(frame);
     	if (AeseGWMode == NO_NEIGHBOUR){
 	    	delete frame;
-	    }else if(AeseGWMode == ALL_NEIGHBOUR){
+	    }else if(AeseGWMode > NO_NEIGHBOUR){
 		    handleFailedAcks(frame);
 	    }
     }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){

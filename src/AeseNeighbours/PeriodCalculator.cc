@@ -47,7 +47,7 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
             transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
-            if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+            if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
                 scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
         }
     }else delete msg;
@@ -107,7 +107,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Start a timer if we can do the period stuff here
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
-                    if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+                    if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
                         scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
                 }
             }
@@ -137,7 +137,7 @@ PeriodCalculator::Statistics PeriodCalculator::calculateTValueAndOthers(const st
 
 void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo)
 {
-    if(AeseGWMode > 0){
+    if(AeseGWMode > 1){
         NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
         pkt->setDeviceAddress(txAddr);
         pkt->setSequenceNumber(lastSeqNo);
