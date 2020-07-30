@@ -45,10 +45,11 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             auto iter = NodePeriodsList->find(addr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
             // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
-            transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
+            if( nodePeriodInfo.timesTried < 2 )
+                transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
             if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
-                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1, nodePeriodInfo.msg);
+                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
         }
     }else delete msg;
 }
@@ -67,6 +68,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
             // Bad implementation, fix this 
             auto iter = NodePeriodsList->find(txAddr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
+            nodePeriodInfo.timesTried = 0;
             nodePeriodInfo.msg = new DevAddrMessage("MessageNotReceivedFindIt");
             nodePeriodInfo.msg->setAddr(txAddr);
             nodePeriodInfo.allPeriods = new cOutVector;
@@ -76,6 +78,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
             // Already in table, delete old and add new
             // All the T_value stuff is part of this loop
             NodePeriodInfo& nodePeriodInfo = iter->second;
+            nodePeriodInfo.timesTried = 0;
             if(nodePeriodInfo.msg->isScheduled()){
                 cancelEvent(nodePeriodInfo.msg);
             }
@@ -108,7 +111,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
                     if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
-                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 1,nodePeriodInfo.msg);
+                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2,nodePeriodInfo.msg);
                 }
             }
             delete packet;

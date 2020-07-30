@@ -28,6 +28,10 @@ void NeighbourTalkerV2::initialize(int stage)
         failedBids = 0;
         requestedBids = 0;
         acceptedBids = 0;
+        transmittedSomeoneDownlink = 0;
+        transmittedPeriodIn = 0;
+        rebroadcastingAnUplink = 0;
+        requestedSomeoneToForwardAck = 0;
     }
 }
 
@@ -124,6 +128,8 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
     }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){
         // std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
         handleFindNeighboursForUplink(frame->decapsulate());
+        delete frame;
+    }else if(frame->getType() == SEND_ACCEPT_BIDS_FOR_NEIGHBOURS){
         delete frame;
     }else{
         // Message from phy layer
@@ -244,7 +250,8 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
             // Have I seen the node in last 2 seconds?
             if(simTime() - insertionTime < 2){
                 ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
-                simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
+                // simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
+                simtime_t sendingTime = simTime() + 0.1;
                 bool scheduled = scheduler->canThisBeScehduled(0,SEND_ACCEPT_BIDS_FOR_NEIGHBOURS,sendingTime);
                 if(scheduled){
                     auto f = (iter->second).frame;

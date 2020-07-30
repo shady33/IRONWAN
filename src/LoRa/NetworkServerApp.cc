@@ -228,7 +228,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
         // LAKSH: Changing from 1.8 to 0.5 so that gateways get messages as
         // soon as possible
-        scheduleAt(simTime() + 0.5, rcvPkt.endOfWaiting); //1.2 // 1.8
+        scheduleAt(simTime() + 0.2, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
 }
