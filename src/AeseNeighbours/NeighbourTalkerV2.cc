@@ -32,7 +32,15 @@ void NeighbourTalkerV2::initialize(int stage)
         transmittedPeriodIn = 0;
         rebroadcastingAnUplink = 0;
         requestedSomeoneToForwardAck = 0;
+        startUDP();
     }
+}
+
+void NeighbourTalkerV2::startUDP()
+{
+    socket.setOutputGate(gate("udpOut"));
+    const char *localAddress = par("localAddress");
+    socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), 1007);
 }
 
 void NeighbourTalkerV2::handleMessage(cMessage *msg)
@@ -47,8 +55,12 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
         // LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
         handleLowerLayer(PK(msg));
     }else if(msg->arrivedOn("periodIn")){
-        if(AeseGWMode > ALL_NEIGHBOUR){
+        if(AeseGWMode > NO_NEIGHBOUR){
             handlePeriodIn(PK(msg));
+        }
+    }else if(msg->arrivedOn("udpIn")){
+        if(AeseGWMode > NO_NEIGHBOUR){
+            send(PK(msg),"periodOut");
         }
     }
     
@@ -167,8 +179,16 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                     ReceivedPacket& rxPkt = iter->second;
                     if(((simTime() - rxPkt.insertionTime) < 2) && (scheduler->canThisBeScehduled(1,ACCEPTED_BIDS_ACKS,msg->getSendingTime()))){
                         // Decapsulate and add the correct type
-                        transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
-                        send(msg->dup(),"lowerLayerOut");
+                        if((AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
+                            if (intuniform(0,10) < 5){
+                                transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
+                                send(msg->dup(),"lowerLayerOut");
+                            }
+                        }else{
+                            transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
+                            send(msg->dup(),"lowerLayerOut");
+                        }
+                        
                     }
                 }
                 delete msg;

@@ -94,6 +94,9 @@ module LoRaAeseGWV2
         
         reinforcementLearning.lowerLayerOut --> neighbourTalker.rlLayerIn;
         reinforcementLearning.lowerLayerIn <-- neighbourTalker.rlLayerOut;
+        
+        neighbourTalker.udpOut --> udp.appIn++;
+        neighbourTalker.udpIn <-- udp.appOut++;
 
         for i=0..sizeof(ethg)-1 {
             ethg[i] <--> { @display("m=s"); } <--> eth[i].phys;

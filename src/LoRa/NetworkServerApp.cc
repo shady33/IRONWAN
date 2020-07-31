@@ -162,7 +162,7 @@ bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)
 }
 
 void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
-{
+{    
     bool nodeExist = false;
     for(uint i=0;i<knownNodes.size();i++)
     {
@@ -185,6 +185,7 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
         newNode.confirmedNode = pkt->getConfirmedMessage();
         newNode.receivedFrames = 1;
         newNode.isForMe = (pkt->getTransmitterAddress().getAddressByte(0) == networkServerNumber);
+        newNode.isAssigned = false;
         newNode.framesFromLastADRCommand = 0;
         newNode.numberOfSentADRPackets = 0;
         newNode.historyAllSNIR = new cOutVector;
@@ -348,6 +349,13 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
             }
             if(pkt->getConfirmedMessage())
                 sendACK = true;
+            
+            if((knownNodes[i].receivedFrames > 15) && (knownNodes[i].isAssigned == false)){
+                NeighbourTalkerMessage *f = new NeighbourTalkerMessage("YouHandleTheNode");
+                f->setDeviceAddress(knownNodes[i].srcAddr);
+                knownNodes[i].isAssigned = true;
+                socket.sendTo(f,pickedGateway,1007);
+            }
         }
     }
 

@@ -15,10 +15,13 @@
 
 package loranetwork.AeseNeighbours;
 
-simple NeighbourTalkerV2
+import inet.applications.contract.IUDPApp;
+
+simple NeighbourTalkerV2 like IUDPApp
 {
     @class(inet::NeighbourTalkerV2);
     int AeseGWMode = default(0);
+    string localAddress = default("");
     gates:
 		input lowerLayerIn;
         output lowerLayerOut;
@@ -26,4 +29,6 @@ simple NeighbourTalkerV2
         output rlLayerOut;
         input periodIn;
         output periodOut;
+        input udpIn;
+        output udpOut;
 }

@@ -28,6 +28,7 @@
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "AeseAppPacket_m.h"
+#include "../AeseNeighbours/NeighbourTalkerMessage_m.h"
 #include <list>
 
 namespace inet {
@@ -39,6 +40,7 @@ public:
     int framesFromLastADRCommand;
     bool confirmedNode;
     bool isForMe;
+    bool isAssigned;
     int receivedFrames;
     int lastSeqNoProcessed;
     int numberOfSentADRPackets;

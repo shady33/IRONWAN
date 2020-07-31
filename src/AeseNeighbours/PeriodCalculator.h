@@ -56,6 +56,10 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
 
     typedef std::map<DevAddr, NodePeriodInfo, DevAddr_compare> NodePeriodsStruct;
     NodePeriodsStruct *NodePeriodsList = nullptr;
+
+    typedef std::map<DevAddr, int, DevAddr_compare> NodesBelongToMeStruct;
+    NodesBelongToMeStruct *NodesBelongToMe = nullptr;
+
     int gwNSNumber;
     int requestedperiods;
     int AeseGWMode;

@@ -27,6 +27,7 @@ void PeriodCalculator::initialize(int stage)
         NodePeriodsList = new NodePeriodsStruct();
         requestedperiods = 0;
         AeseGWMode = (int)par("AeseGWMode");
+        NodesBelongToMe = new NodesBelongToMeStruct();
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
         gwNSNumber = (check_and_cast<PacketForwarder *>(getParentModule()->getSubmodule("packetForwarder")))->getGatewayNsNumber();
     }
@@ -39,6 +40,12 @@ void PeriodCalculator::handleMessage(cMessage *msg)
         std::string className(msg->getClassName());
         if(className.compare("inet::LoRaMacFrame") == 0)
             handleLoRaFrame(PK(msg));
+        else if(className.compare("inet::NeighbourTalkerMessage") == 0){
+            NeighbourTalkerMessage *f = check_and_cast<NeighbourTalkerMessage*>(msg);
+            DevAddr d = f->getDeviceAddress();
+            (*NodesBelongToMe)[d] = 1;
+            delete msg;
+        }
     }else if(msg->isSelfMessage()){
         if(!strcmp(msg->getName(),"MessageNotReceivedFindIt")){
             DevAddr addr = check_and_cast<DevAddrMessage*>(msg)->getAddr();
@@ -46,10 +53,22 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             NodePeriodInfo& nodePeriodInfo = iter->second;
             // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
             // if( nodePeriodInfo.timesTried < 2 )
-                transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
+            transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
-            if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
-                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+            
+            if(nodePeriodInfo.currentPeriod > 0){
+                if(AeseGWMode != 3){
+                    auto iter = NodesBelongToMe->find(addr);
+                    if(iter != NodesBelongToMe->end()){
+                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                    }
+                }else{
+                    scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                }
+            }
+
+            // if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+                // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
         }
     }else delete msg;
 }
@@ -110,8 +129,18 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 // Start a timer if we can do the period stuff here
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
-                    if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )
-                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2,nodePeriodInfo.msg);
+                    if(nodePeriodInfo.currentPeriod > 0){
+                        if(AeseGWMode != 3){
+                            auto iter = NodesBelongToMe->find(txAddr);
+                            if(iter != NodesBelongToMe->end()){
+                                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                            }
+                        }else{
+                            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                        }
+                    }  
+                    // if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
+                        // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2,nodePeriodInfo.msg);
                 }
             }
             delete packet;
@@ -140,7 +169,7 @@ PeriodCalculator::Statistics PeriodCalculator::calculateTValueAndOthers(const st
 
 void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo)
 {
-    if(AeseGWMode > 1){
+    if(AeseGWMode > 0){
         NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
         pkt->setDeviceAddress(txAddr);
         pkt->setSequenceNumber(lastSeqNo);

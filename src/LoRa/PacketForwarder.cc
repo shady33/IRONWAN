@@ -222,17 +222,11 @@ void PacketForwarder::handleMessage(cMessage *msg)
         //send(msg, "upperLayerOut");
         //sendPacket();
     } else if (msg->arrivedOn("udpIn")) {
-        // LAKSH: No duty cycling check done here
         EV << "Received UDP packet" << endl;
-        // if(simTime()-timeOfLastPacket > 0.5){
-            sentMsgs++;
-            // timeOfLastPacket = simTime();
-            LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
-            frame->setType(MY_ACKS);
-            send(frame, "lowerLayerOut");
-        // }else{
-            // delete msg;
-        // }
+        sentMsgs++;
+        LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
+        frame->setType(MY_ACKS);
+        send(frame, "lowerLayerOut");
     }else if(msg->isSelfMessage()){
         std::string s(msg->getName());
         if(s.compare("rtEvent") == 0){

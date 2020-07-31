@@ -21,6 +21,7 @@
 #include <vector>
 #include "inet/common/INETDefs.h"
 #include "inet/applications/base/ApplicationBase.h"
+#include "inet/transportlayer/contract/udp/UDPSocket.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "../misc/cSimulinkRTScheduler.h"
 #include "SupportedProtocols.h"
@@ -39,10 +40,10 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
 {
   protected:
     enum AeseGWModes{
-        NO_NEIGHBOUR,
-        ALL_NEIGHBOUR,
-        NEIGHBOUR_WITH_BIDS,
-        NEIGHBOUR_WITH_BIDS_RANDOM
+        NO_NEIGHBOUR=0,
+        ALL_NEIGHBOUR=1,
+        NEIGHBOUR_WITH_BIDS=2,
+        NEIGHBOUR_WITH_BIDS_RANDOM=3
     };
 
     struct ReceivedPacket
@@ -108,6 +109,7 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
     SupportedProtocols currentProtocol;
 
   protected:
+    UDPSocket socket;
     int numberOfGateways;
     std::list<DownlinkPacket> downlinkList;
     typedef std::map<DevAddr,int, DevAddr_compare> DownlinkLastDropRequest;
@@ -131,6 +133,7 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     virtual std::string str() const override { return "NeighbourTalkerV2"; };
     void handleLoRaFrame(cPacket* pkt);
+    void startUDP();
     // void transmitPing();
     // void handleDownlinkQueue();
     // void transmitLoRaMessage();
