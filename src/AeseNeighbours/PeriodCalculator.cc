@@ -45,7 +45,7 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             auto iter = NodePeriodsList->find(addr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
             // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
-            if( nodePeriodInfo.timesTried < 2 )
+            // if( nodePeriodInfo.timesTried < 2 )
                 transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
             if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 1) )

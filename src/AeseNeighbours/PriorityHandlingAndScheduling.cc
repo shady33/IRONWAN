@@ -95,6 +95,7 @@ void PriorityHandlingAndScheduling::initialize(int stage)
         sendMessageFromQueue1 = new cMessage("Send message from band 1");
         freeAfterCurrent[1] = 0;
         lastPriority[1] = 99999;
+        AeseGWMode = (int)par("AeseGWMode");
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
 
     }
@@ -152,6 +153,16 @@ bool PriorityHandlingAndScheduling::canThisBeScehduled(int band, int priority, s
     // If a new message can be scheduled of if the new
     // one can has a higher priority than last scheduled messages
     // and is newer than the last transmitted message
+    if(AeseGWMode == 3){
+        if(band == 0){
+            if(sendingTime < sendMessageFromQueue0->getArrivalTime()) return false;
+            else return true;
+        }else if (band == 1){
+            if(sendingTime < sendMessageFromQueue1->getArrivalTime()) return false;
+            else return true;
+        }
+    }
+
     if(sendingTime < simTime()) return false;
     if(sendingTime >= freeAfterCurrent[band])
         return true;

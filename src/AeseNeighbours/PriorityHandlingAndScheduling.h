@@ -37,6 +37,7 @@ class INET_API PriorityHandlingAndScheduling : public cSimpleModule, public cLis
 
     cMessage *sendMessageFromQueue0;
     cMessage *sendMessageFromQueue1;
+    int AeseGWMode;
 
   protected:
     virtual void initialize(int stage) override;
