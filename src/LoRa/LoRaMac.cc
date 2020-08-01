@@ -345,7 +345,6 @@ cPacket *LoRaMac::decapsulate(LoRaMacFrame *frame)
 {
     cPacket *payload = frame->decapsulate();
 
-
     delete frame;
     return payload;
 }

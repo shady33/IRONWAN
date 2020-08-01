@@ -225,7 +225,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         EV << "Received UDP packet" << endl;
         sentMsgs++;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
-        frame->setType(MY_ACKS);
+        frame->setType(MY_ACKS);        
         send(frame, "lowerLayerOut");
     }else if(msg->isSelfMessage()){
         std::string s(msg->getName());
@@ -331,9 +331,8 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     //(frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
     listOfSuccessfulNodes.record((frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3));
     macCntValues.record(frame->getSequenceNumber());
-    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
+    AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->getEncapsulatedPacket());
     actualCntValues.record(packet->getActuatorSequenceNumbers(0));
-	delete packet;
 
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)

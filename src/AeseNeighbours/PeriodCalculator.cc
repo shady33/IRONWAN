@@ -103,7 +103,6 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
             }
             simtime_t timeBetweenMessages = simTime() - nodePeriodInfo.lastReceivedTime;
             AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->decapsulate());
-            
             if((nodePeriodInfo.lastSeqNo < packet->getActuatorSequenceNumbers(0))){
                 // If it is a new message then continue
                 if(std::abs(SIMTIME_DBL(nodePeriodInfo.currentPeriod - timeBetweenMessages)) > 1){
