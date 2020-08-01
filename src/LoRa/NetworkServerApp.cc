@@ -207,6 +207,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
 {
     AeseAppPacket *request = check_and_cast<AeseAppPacket *>(pkt->decapsulate());
     simtime_t timePacketGenerated = request->getPacketGeneratedTime(1);
+    delete request;
     bool packetExists = false;
     UDPDataIndication *cInfo = check_and_cast<UDPDataIndication*>(pkt->getControlInfo());
     for(uint i=0;i<receivedPackets.size();i++)
@@ -225,7 +226,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
             receivedSomething++;
         receivedPacket rcvPkt;
         rcvPkt.rcvdPacket = pkt;
-        rcvPkt.timeToSend = timePacketGenerated + 1.9; //simTime() + 1.9;
+        rcvPkt.timeToSend = timePacketGenerated + 1.9;
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());

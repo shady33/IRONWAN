@@ -342,7 +342,8 @@ void SimpleLoRaApp::sendJoinRequest()
     lastSentMeasurement = rand();
     request->setSampleMeasurement(dataToSend);
     request->setPacketGeneratedTime(0,startTime);
-    request->setPacketGeneratedTime(1,simTime());
+    double timeOnAirValue = timeOnAir(loRaSF, loRaBW, 40, 1);
+    request->setPacketGeneratedTime(1,simTime()+timeOnAirValue);
     request->setSensorNumber(sensorNumber);
     request->setActuatorSequenceNumbers(0,seqeuenceNumber);
 
