@@ -142,19 +142,20 @@ void SimpleLoRaApp::finish()
     // std::cout << "Number of generated packets:" << sentPackets << std::endl;
     // std::cout << getParentModule() << numberOfAcks << std::endl;
     // std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
-    std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
+    
     cModule *host = getContainingNode(this);
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
     Coord coord = mobility->getCurrentPosition();
-    recordScalar("PDR",((float)numberOfAcks)/((float)sentPackets));
     recordScalar("positionX", coord.x);
     recordScalar("positionY", coord.y);
     recordScalar("finalTP", loRaTP);
     recordScalar("finalSF", loRaSF);
     recordScalar("sentPackets", sentPackets);
-    if(retryLimit > 0)
+    if(retryLimit > 0){
+        std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
+        recordScalar("PDR",((float)numberOfAcks)/((float)sentPackets));
         recordScalar("AckedPacketsTx", sentPackets);
-    else
+    }else
         recordScalar("UnAckedPacketsTx", sentPackets);
 
     recordScalar("receivedADRCommands", receivedADRCommands);
@@ -341,6 +342,7 @@ void SimpleLoRaApp::sendJoinRequest()
     lastSentMeasurement = rand();
     request->setSampleMeasurement(dataToSend);
     request->setPacketGeneratedTime(0,startTime);
+    request->setPacketGeneratedTime(1,simTime());
     request->setSensorNumber(sensorNumber);
     request->setActuatorSequenceNumbers(0,seqeuenceNumber);
 
