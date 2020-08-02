@@ -371,6 +371,9 @@ void SimpleLoRaApp::sendJoinRequest()
         cInfo->setConfirmedMessage(true);
     }
 
+    double time = timeOnAir(loRaSF, loRaBW, 40, 1);
+    cInfo->setGeneratedTime(simTime() + time);
+    
     request->setControlInfo(cInfo);
     sfVector.record(loRaSF);
     tpVector.record(loRaTP);

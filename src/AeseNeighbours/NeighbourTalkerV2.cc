@@ -169,7 +169,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                     rxPkt.RSSI = rssi;
                 }
             }else if(frame->getMsgType() == GW_HANDOFF_MESSAGE){
-                LoRaMacFrame *msg = dynamic_cast<LoRaMacFrame*>(frame->decapsulate());
+                LoRaMacFrame *msg = check_and_cast<LoRaMacFrame*>(frame->decapsulate());
                 msg->setType(ACCEPTED_BIDS_ACKS);
 
                 // This is a message for gateways interested in someone to accept their bids

@@ -177,6 +177,7 @@ void LoRaMac::handleUpperPacket(cPacket *msg)
     frame->setLoRaSF(cInfo->getLoRaSF());
     frame->setLoRaBW(cInfo->getLoRaBW());
     frame->setLoRaCR(cInfo->getLoRaCR());
+    frame->setGeneratedTime(cInfo->getGeneratedTime());
     frame->setSequenceNumber(sequenceNumber);
     frame->setReceiverAddress(DevAddr::BROADCAST_ADDRESS);
     ++sequenceNumber;

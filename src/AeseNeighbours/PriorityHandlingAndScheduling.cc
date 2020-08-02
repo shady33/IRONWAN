@@ -128,8 +128,9 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             if(!sendingQueue[band].empty()) {
                 LoRaMacFrame* frame;
                 simtime_t lastTime = SIMTIME_MAX;
-                for(auto& it : sendingQueue[band]){
-                    if((it.sendingTime > simTime()) && (it.sendingTime < lastTime)){
+		std::cout << simTime() << sendingQueue[band].size() << std::endl;
+                for(auto& it : sendingQueue[band]){ 
+		   if((it.sendingTime > simTime()) && (it.sendingTime < lastTime)){
                         frame = it.frame;
                         lastTime = it.sendingTime;
                     }

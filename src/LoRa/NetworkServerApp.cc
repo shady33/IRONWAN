@@ -205,7 +205,9 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
 
 void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
 {
+    if((pkt->getTransmitterAddress()).getAddressByte(0) == networkServerNumber){
     bool packetExists = false;
+    simtime_t timeGenerated = pkt->getGeneratedTime();
     UDPDataIndication *cInfo = check_and_cast<UDPDataIndication*>(pkt->getControlInfo());
     for(uint i=0;i<receivedPackets.size();i++)
     {
@@ -219,11 +221,12 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
     }
     if(packetExists == false)
     {
+	if(simTime()-timeGenerated>1) std::cout << pkt << std::endl;
         if((pkt->getTransmitterAddress()).getAddressByte(0) == networkServerNumber)
             receivedSomething++;
         receivedPacket rcvPkt;
         rcvPkt.rcvdPacket = pkt;
-        rcvPkt.timeToSend = simTime() + 1.9;
+        rcvPkt.timeToSend = timeGenerated + 1.9;
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
         rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
@@ -232,6 +235,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         scheduleAt(simTime() + 0.2, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
+    }else delete pkt;
 }
 
 void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
