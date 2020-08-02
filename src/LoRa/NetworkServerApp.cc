@@ -207,7 +207,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
 {
     AeseAppPacket *request = check_and_cast<AeseAppPacket *>(pkt->decapsulate());
     simtime_t timePacketGenerated = request->getPacketGeneratedTime(1);
-    delete request;
+    
     bool packetExists = false;
     UDPDataIndication *cInfo = check_and_cast<UDPDataIndication*>(pkt->getControlInfo());
     for(uint i=0;i<receivedPackets.size();i++)
@@ -235,6 +235,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         scheduleAt(simTime() + 0.2, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
+    // delete request;
 }
 
 void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)

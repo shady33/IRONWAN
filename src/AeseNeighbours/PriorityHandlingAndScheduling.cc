@@ -103,6 +103,8 @@ void PriorityHandlingAndScheduling::initialize(int stage)
 
 void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
 {
+    std::cout << simTime() << ":";
+    std::cout << msg << std::endl;
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
         handleLowerPacket(PK(msg));
@@ -128,10 +130,10 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             if(!sendingQueue[band].empty()) {
                 LoRaMacFrame* frame;
                 simtime_t lastTime = SIMTIME_MAX;
-                for(auto& it : sendingQueue[band]){
-                    if((it.sendingTime > simTime()) && (it.sendingTime < lastTime)){
-                        frame = it.frame;
-                        lastTime = it.sendingTime;
+                for(auto it : sendingQueue[band]){
+                    if(((it).sendingTime > simTime()) && ((it).sendingTime < lastTime)){
+                        frame = (it).frame;
+                        lastTime = (it).sendingTime;
                     }
                 }
                 // auto elementinQueue = sendingQueue[band].front();
