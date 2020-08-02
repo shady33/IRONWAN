@@ -114,7 +114,7 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
         if(!scheduled) delete msg;
     }else if(msg->isSelfMessage()){
         if((msg == sendMessageFromQueue0) || (msg == sendMessageFromQueue1)){
-            int band = 0;
+		int band = 0;
             if((msg == sendMessageFromQueue0)) band = 0;
             if((msg == sendMessageFromQueue1)) band = 1;
             for(auto it=sendingQueue[band].begin();it!=sendingQueue[band].end();it++){
@@ -128,10 +128,10 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             if(!sendingQueue[band].empty()) {
                 LoRaMacFrame* frame;
                 simtime_t lastTime = SIMTIME_MAX;
-                for(auto it : sendingQueue[band]){
-                    if(((it).sendingTime > simTime()) && ((it).sendingTime < lastTime)){
-                        frame = (it).frame;
-                        lastTime = (it).sendingTime;
+            	for(auto it=sendingQueue[band].begin();it!=sendingQueue[band].end();it++){
+                    if(((*it).sendingTime > simTime()) && ((*it).sendingTime < lastTime)){
+                        frame = (*it).frame;
+                        lastTime = (*it).sendingTime;
                     }
                 }
                 // auto elementinQueue = sendingQueue[band].front();
