@@ -183,6 +183,7 @@ void LoRaMac::handleUpperPacket(cPacket *msg)
     frame->setLoRaUseHeader(cInfo->getLoRaUseHeader());
     frame->setConfirmedMessage(cInfo->getConfirmedMessage());
     frame->setPayloadLength(cInfo->getPayloadLength());
+    frame->setGeneratedTime(cInfo->getGeneratedTime());
     EV << "frame " << frame << " received from higher layer, receiver = " << frame->getReceiverAddress() << endl;
     transmissionQueue.insert(frame);
     handleWithFsm(frame);

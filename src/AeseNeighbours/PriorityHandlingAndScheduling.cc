@@ -103,8 +103,6 @@ void PriorityHandlingAndScheduling::initialize(int stage)
 
 void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
 {
-    std::cout << simTime() << ":";
-    std::cout << msg << std::endl;
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
         handleLowerPacket(PK(msg));

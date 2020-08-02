@@ -368,6 +368,7 @@ void SimpleLoRaApp::sendJoinRequest()
     cInfo->setLoRaCR(loRaCR);
     cInfo->setNumberOfFrames(1);
     cInfo->setPayloadLength(40);
+    cInfo->setGeneratedTime(simTime()+timeOnAirValue);
     if(retryLimit == 1){
         cInfo->setConfirmedMessage(false);
     }else{

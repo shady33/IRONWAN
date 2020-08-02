@@ -85,5 +85,6 @@ packet LoRaMacFrame {
     bool confirmedMessage;
 
     simtime_t sendingTime;
+    simtime_t generatedTime;
     int type @enum(MessagesTypesAndPriority);
 }
