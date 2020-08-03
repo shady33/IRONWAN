@@ -1,0 +1,9 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2017 Andras Varga, OpenSim Ltd.
+Version: 5.2.1, build: 171211-da8f6bc, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /home/lb3416/Softwares/omnetpp-5.2.1/samples/lora-multi-gateway/src:  37
+Loading NED files from /home/lb3416/Softwares/omnetpp-5.2.1/samples/lora-multi-gateway/simulations:  1
+Loading NED files from /home/lb3416/Softwares/omnetpp-5.2.1/samples/inet/examples: 

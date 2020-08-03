@@ -105,6 +105,7 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     void sendBackDownlink(LoRaMacFrame* frame,L3Address pickedGateway);
     cHistogram receivedRSSI;
   public:
+    virtual ~NetworkServerApp();
     simsignal_t LoRa_ServerPacketReceived;
     int counterOfSentPacketsFromNodes = 0;
     int counterOfSentPacketsFromNodesPerSF[6];
