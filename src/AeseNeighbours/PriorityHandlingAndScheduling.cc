@@ -136,13 +136,15 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
                 }
                 // auto elementinQueue = sendingQueue[band].front();
                 // LoRaMacFrame* frame = (elementinQueue).frame;
-                int PayloadLength = frame->getPayloadLength();
-                if(PayloadLength == 0)
-                    PayloadLength = 20;
-                double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-                freeAfterCurrent[band] = lastTime + (delta * 10);
-                lastPriority[band] = frame->getType();
-                scheduleAt(lastTime,msg);
+                if(lastTime != SIMTIME_MAX){
+                    int PayloadLength = frame->getPayloadLength();
+                    if(PayloadLength == 0)
+                        PayloadLength = 20;
+                    double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+                    freeAfterCurrent[band] = lastTime + (delta * 10);
+                    lastPriority[band] = frame->getType();
+                    scheduleAt(lastTime,msg);
+                }
             }
         }
     }else delete msg;

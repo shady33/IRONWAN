@@ -88,6 +88,22 @@ void NetworkServerApp::processLoraMACPacket(cPacket *pk)
     addPktToProcessingTable(frame);
 }
 
+NetworkServerApp::~NetworkServerApp()
+{
+    for(uint i=0;i<knownNodes.size();i++)
+    {
+        delete knownNodes[i].historyAllSNIR;
+        delete knownNodes[i].historyAllRSSI;
+        delete knownNodes[i].receivedSeqNumber;
+        delete knownNodes[i].calculatedSNRmargin;
+    }
+    for(uint i=0;i<receivedPackets.size();i++)
+    {
+        delete receivedPackets[i].rcvdPacket;
+    }
+    receivedPackets.clear();
+}
+
 void NetworkServerApp::finish()
 {
     recordScalar("LoRa_NS_DER", double(counterOfReceivedPackets)/counterOfSentPacketsFromNodes);
@@ -96,10 +112,6 @@ void NetworkServerApp::finish()
     {
         if(!knownNodes[i].confirmedNode && knownNodes[i].isForMe)
             unackedNodes = unackedNodes + knownNodes[i].receivedFrames;
-        delete knownNodes[i].historyAllSNIR;
-        delete knownNodes[i].historyAllRSSI;
-        delete knownNodes[i].receivedSeqNumber;
-        delete knownNodes[i].calculatedSNRmargin;
         recordScalar("Send ADR for node", knownNodes[i].numberOfSentADRPackets);
     }
     recordScalar("UnAckedNodesReceived",unackedNodes);
@@ -107,11 +119,6 @@ void NetworkServerApp::finish()
     recordScalar("numOfReceivedPackets", numOfReceivedPackets);
     recordScalar("ReceivedPacketsForNS",receivedSomething);
     recordScalar("SentADRmessages", sentMsgs);
-    for(uint i=0;i<receivedPackets.size();i++)
-    {
-        delete receivedPackets[i].rcvdPacket;
-    }
-    receivedPackets.clear();
     recordScalar("numOfReceivedPacketsPerSF SF7", counterOfReceivedPacketsPerSF[0]);
     recordScalar("numOfReceivedPacketsPerSF SF8", counterOfReceivedPacketsPerSF[1]);
     recordScalar("numOfReceivedPacketsPerSF SF9", counterOfReceivedPacketsPerSF[2]);
@@ -232,7 +239,6 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         scheduleAt(simTime() + 0.2, rcvPkt.endOfWaiting); //1.2 // 1.8
         receivedPackets.push_back(rcvPkt);
     }
-    // delete request;
 }
 
 void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
