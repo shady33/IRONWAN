@@ -69,7 +69,7 @@ void LoRaMac::initialize(int stage)
         else
             address.setAddress(addressString);
         registerInterface();
-
+        
         // subscribe for the information of the carrier sense
         cModule *radioModule = getModuleFromPar<cModule>(par("radioModule"), this);
         radioModule->subscribe(IRadio::receptionStateChangedSignal, this);

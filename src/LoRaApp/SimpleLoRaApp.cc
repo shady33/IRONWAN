@@ -151,7 +151,7 @@ void SimpleLoRaApp::finish()
     recordScalar("finalTP", loRaTP);
     recordScalar("finalSF", loRaSF);
     recordScalar("sentPackets", sentPackets);
-    if(retryLimit > 0){
+    if(retryLimit > 1){
         // std::cout << "PDR:" << numberOfAcks << " " << sentPackets << std::endl;
         recordScalar("PDR",((float)numberOfAcks)/((float)sentPackets));
         recordScalar("AckedPacketsTx", sentPackets);

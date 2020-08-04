@@ -39,6 +39,7 @@ void NetworkServerApp::initialize(int stage)
         getSimulation()->getSystemModule()->subscribe("LoRa_AppPacketSent", this);
         evaluateADRinServer = par("evaluateADRinServer");
         receivedRSSI.setName("Received RSSI");
+        numberOfReceivedFrames.setName("NumberOfReceivedFrames");
         numOfReceivedPackets = 0;
         for(int i=0;i<6;i++)
         {
@@ -112,6 +113,11 @@ void NetworkServerApp::finish()
     {
         if(!knownNodes[i].confirmedNode && knownNodes[i].isForMe)
             unackedNodes = unackedNodes + knownNodes[i].receivedFrames;
+        if(knownNodes[i].isForMe){
+            uint32_t node_num_with_frames = (knownNodes[i].srcAddr.getInt()) & 0x0000ffffUL;
+            node_num_with_frames = (node_num_with_frames << 10) + knownNodes[i].receivedFrames;
+            numberOfReceivedFrames.record(node_num_with_frames);
+        }
         recordScalar("Send ADR for node", knownNodes[i].numberOfSentADRPackets);
     }
     recordScalar("UnAckedNodesReceived",unackedNodes);

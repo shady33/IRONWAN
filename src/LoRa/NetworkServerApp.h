@@ -86,7 +86,8 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     int sentMsgs;
     unsigned long int sequenceNumber;
     unsigned long receivedSomething;
-
+    cOutVector numberOfReceivedFrames;
+    
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
