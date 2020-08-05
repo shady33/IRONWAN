@@ -43,6 +43,8 @@ public:
     bool isAssigned;
     int receivedFrames;
     int lastSeqNoProcessed;
+    int lastAppSeqNoProcessed;
+    int receivedAppFrames;
     int numberOfSentADRPackets;
     std::list<double> receivedSNIR;
     cOutVector *historyAllSNIR;

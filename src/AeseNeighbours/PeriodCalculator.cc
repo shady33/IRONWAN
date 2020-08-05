@@ -57,12 +57,12 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
             
             if(nodePeriodInfo.currentPeriod > 0){
-                if(AeseGWMode != 3){
+                if(AeseGWMode == 3){
                     auto iter = NodesBelongToMe->find(addr);
                     if(iter != NodesBelongToMe->end()){
                         scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
                     }
-                }else{
+                }else if(AeseGWMode == 1){
                     scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
                 }
             }

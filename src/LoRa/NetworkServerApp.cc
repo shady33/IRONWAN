@@ -115,7 +115,7 @@ void NetworkServerApp::finish()
             unackedNodes = unackedNodes + knownNodes[i].receivedFrames;
         if(knownNodes[i].isForMe){
             uint32_t node_num_with_frames = (knownNodes[i].srcAddr.getInt()) & 0x0000ffffUL;
-            node_num_with_frames = (node_num_with_frames << 10) + knownNodes[i].receivedFrames;
+            node_num_with_frames = (node_num_with_frames << 16) + knownNodes[i].receivedAppFrames;
             numberOfReceivedFrames.record(node_num_with_frames);
         }
         recordScalar("Send ADR for node", knownNodes[i].numberOfSentADRPackets);
@@ -175,7 +175,8 @@ bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)
 }
 
 void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
-{    
+{   
+    AeseAppPacket *app = check_and_cast<AeseAppPacket*>(pkt->getEncapsulatedPacket());
     bool nodeExist = false;
     for(uint i=0;i<knownNodes.size();i++)
     {
@@ -186,6 +187,11 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
             {
                 knownNodes[i].lastSeqNoProcessed = pkt->getSequenceNumber();
                 knownNodes[i].receivedFrames += 1;
+            }
+            if(knownNodes[i].lastAppSeqNoProcessed < app->getActuatorSequenceNumbers(0))
+            {
+                knownNodes[i].lastAppSeqNoProcessed = app->getActuatorSequenceNumbers(0);
+                knownNodes[i].receivedAppFrames += 1;
             }
             break;
         }
@@ -201,6 +207,8 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
         newNode.isAssigned = false;
         newNode.framesFromLastADRCommand = 0;
         newNode.numberOfSentADRPackets = 0;
+        newNode.lastAppSeqNoProcessed = app->getActuatorSequenceNumbers(0);
+        newNode.receivedAppFrames = 1;
         newNode.historyAllSNIR = new cOutVector;
         newNode.historyAllSNIR->setName("Vector of SNIR per node");
         //newNode.historyAllSNIR->record(pkt->getSNIR());
