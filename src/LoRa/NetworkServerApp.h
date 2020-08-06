@@ -107,6 +107,8 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     bool evaluateADRinServer;
     void sendBackDownlink(LoRaMacFrame* frame,L3Address pickedGateway);
     cHistogram receivedRSSI;
+    void forwardToOthers(cMessage *msg);
+    
   public:
     virtual ~NetworkServerApp();
     simsignal_t LoRa_ServerPacketReceived;

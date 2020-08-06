@@ -60,6 +60,21 @@ void NetworkServerApp::startUDP()
     socket.bind(*localAddress ? L3AddressResolver().resolve(localAddress) : L3Address(), localPort);
 }
 
+void NetworkServerApp::forwardToOthers(cMessage *msg)
+{
+    bool inVector = false;
+    LoRaMacFrame *frame = check_and_cast<LoRaMacFrame*>(msg);
+    UDPDataIndication *cInfo = check_and_cast<UDPDataIndication*>(msg->getControlInfo());
+    L3Address addrReceived = cInfo->getSrcAddr();
+    for(auto destAddr: destAddresses){
+        if(destAddr == addrReceived){
+            inVector = true;
+        }else{
+            socket.sendTo(frame->dup(), destAddr, 1007);
+        }
+    }
+    if(!inVector) destAddresses.push_back(addrReceived);    
+}
 
 void NetworkServerApp::handleMessage(cMessage *msg)
 {
@@ -71,6 +86,7 @@ void NetworkServerApp::handleMessage(cMessage *msg)
                 numOfReceivedPackets++;
             counterOfReceivedPacketsPerSF[frame->getLoRaSF()-7]++;
         }
+        forwardToOthers(msg);
         updateKnownNodes(frame);
         processLoraMACPacket(PK(msg));
     }else if (msg->isSelfMessage()) {

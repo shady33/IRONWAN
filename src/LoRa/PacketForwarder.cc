@@ -210,7 +210,6 @@ void PacketForwarder::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received LoRaMAC frame" << endl;
-        // std::cout << "Received LoRaMAC frame in GW" << std::endl;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
         if(frame->getReceiverAddress() == DevAddr::BROADCAST_ADDRESS){
             // updateAndLogNode(frame);

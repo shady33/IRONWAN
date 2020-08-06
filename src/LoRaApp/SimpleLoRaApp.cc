@@ -269,7 +269,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
-    if(retryLimit > 0){
+    if(retryLimit > 1){
         numberOfAcks += 1;
         cancelEvent(retryMeasurements);
         e2edelay.record(simTime()-startTime);
