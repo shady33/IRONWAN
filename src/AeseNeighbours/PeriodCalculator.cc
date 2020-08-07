@@ -11,6 +11,7 @@ PeriodCalculator::~PeriodCalculator()
         NodePeriodInfo& nodePeriodInfo = iter->second;
         cancelAndDelete(nodePeriodInfo.msg);
         delete nodePeriodInfo.allPeriods;
+        nodePeriodInfo.listOfPeriods.clear();
         iter++;
     }
 }
@@ -18,12 +19,20 @@ PeriodCalculator::~PeriodCalculator()
 void PeriodCalculator::finish()
 {
     recordScalar("RequestedPeriods",requestedperiods);
+    // auto iter = NodePeriodsList->begin();
+    // while(iter != NodePeriodsList->end()) {
+    //     NodePeriodInfo& nodePeriodInfo = iter->second;
+    //     can\celAndDelete(nodePeriodInfo.msg);
+    //     delete nodePeriodInfo.allPeriods;
+    //     nodePeriodInfo.listOfPeriods.clear();
+    //     iter++;
+    // }
 }
 
 void PeriodCalculator::initialize(int stage)
 {
     if (stage == 0) {
-        tValue = par("tValue"); 
+        tValue = par("tValue");
         NodePeriodsList = new NodePeriodsStruct();
         requestedperiods = 0;
         AeseGWMode = (int)par("AeseGWMode");
@@ -53,9 +62,9 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             NodePeriodInfo& nodePeriodInfo = iter->second;
             // std::cout << simTime() << ":Message Failed for:" << addr << " should we find it?"<< nodePeriodInfo.currentPeriod << std::endl;
             // if( nodePeriodInfo.timesTried < 2 )
-            transmitFindRequest(addr,nodePeriodInfo.lastSeqNo);
+            transmitFindRequest(addr,nodePeriodInfo.lastSeqNo,nodePeriodInfo.isConfirmed);
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
-            
+
             if(nodePeriodInfo.currentPeriod > 0){
                 if(AeseGWMode == 3){
                     auto iter = NodesBelongToMe->find(addr);
@@ -82,9 +91,9 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
         auto iter = NodePeriodsList->find(txAddr);
         if(iter == NodePeriodsList->end()){
             // Not found in table, insert
-            (*NodePeriodsList)[txAddr] = NodePeriodInfo(simTime(),frame->getSequenceNumber());
-            
-            // Bad implementation, fix this 
+            (*NodePeriodsList)[txAddr] = NodePeriodInfo(simTime(),frame->getSequenceNumber(),frame->getConfirmedMessage());
+
+            // Bad implementation, fix this
             auto iter = NodePeriodsList->find(txAddr);
             NodePeriodInfo& nodePeriodInfo = iter->second;
             nodePeriodInfo.timesTried = 0;
@@ -137,7 +146,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                         }else{
                             scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
                         }
-                    }  
+                    }
                     // if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )
                         // scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2,nodePeriodInfo.msg);
                 }
@@ -166,12 +175,13 @@ PeriodCalculator::Statistics PeriodCalculator::calculateTValueAndOthers(const st
    return stats;
 }
 
-void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo)
+void PeriodCalculator::transmitFindRequest(DevAddr txAddr,int lastSeqNo,bool isConfirmed)
 {
     if(AeseGWMode > 0){
         NeighbourTalkerMessage *pkt = new NeighbourTalkerMessage("FIND_NEIGHBOURS_FOR_UPLINK");
         pkt->setDeviceAddress(txAddr);
         pkt->setSequenceNumber(lastSeqNo);
+        pkt->setIsConfirmed(isConfirmed);
         requestedperiods = requestedperiods + 1;
         send(pkt,"lowerLayerOut");
     }

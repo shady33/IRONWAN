@@ -40,18 +40,19 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
 
     struct NodePeriodInfo
     {
-      // Devaddr is the key used 
+      // Devaddr is the key used
       double currentPeriod;
       simtime_t lastReceivedTime;
       int lastSeqNo;
       int numberOfMessagesSeen;
       int timesTried;
+      bool isConfirmed;
       std::deque<double> listOfPeriods;
       cOutVector *allPeriods;
       DevAddrMessage *msg;
       NodePeriodInfo(){}
-      NodePeriodInfo(simtime_t lastReceivedTime,int seqno):
-          lastReceivedTime(lastReceivedTime), lastSeqNo(seqno), numberOfMessagesSeen(1),currentPeriod(0) {}
+      NodePeriodInfo(simtime_t lastReceivedTime,int seqno,bool isConfirmed):
+          lastReceivedTime(lastReceivedTime), lastSeqNo(seqno), numberOfMessagesSeen(1),currentPeriod(0),isConfirmed(isConfirmed) {}
     };
 
     typedef std::map<DevAddr, NodePeriodInfo, DevAddr_compare> NodePeriodsStruct;
@@ -70,7 +71,7 @@ class INET_API PeriodCalculator : public cSimpleModule, public cListener
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     virtual std::string str() const override { return "PeriodCalculator"; };
     void handleLoRaFrame(cPacket *pkt);
-    void transmitFindRequest(DevAddr txAddr,int lastSeqNo);
+    void transmitFindRequest(DevAddr txAddr,int lastSeqNo,bool isConfirmed);
   public:
     virtual ~PeriodCalculator();
 };

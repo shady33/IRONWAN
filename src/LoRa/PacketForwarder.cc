@@ -34,12 +34,12 @@ PacketForwarder::~PacketForwarder()
     for(int i = 0; i < 8;i++){
         cancelAndDelete(sendDownlink[i]);
     }
-//    for(uint i=0;i<knownNodes.size();i++)
-//    {
-//        delete knownNodes[i].historyAllSNIR;
-//        delete knownNodes[i].historyAllRSSI;
-//        delete knownNodes[i].receivedSeqNumber;
-//    }
+   // for(uint i=0;i<knownNodes.size();i++)
+   // {
+   //     delete knownNodes[i].historyAllSNIR;
+   //     delete knownNodes[i].historyAllRSSI;
+   //     delete knownNodes[i].receivedSeqNumber;
+   // }
 }
 
 void PacketForwarder::initialize(int stage)
@@ -224,7 +224,7 @@ void PacketForwarder::handleMessage(cMessage *msg)
         EV << "Received UDP packet" << endl;
         sentMsgs++;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
-        frame->setType(MY_ACKS);        
+        frame->setType(MY_ACKS);
         send(frame, "lowerLayerOut");
     }else if(msg->isSelfMessage()){
         std::string s(msg->getName());

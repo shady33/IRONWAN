@@ -2,7 +2,7 @@
 
 
 // TODO: Deal with different state sizes properly -- Done
-//       Decide the whole testing while training thing before 
+//       Decide the whole testing while training thing before
 //         it becomes part of the main module
 //       Decide whether next should be introduced
 //       Verify the whole logic once
@@ -13,7 +13,7 @@ Define_Module(ReinforcementLearning);
 
 ReinforcementLearning::~ReinforcementLearning()
 {
-
+    qTable->clear();
 }
 
 void ReinforcementLearning::finish()
@@ -151,7 +151,7 @@ void ReinforcementLearning::handleUpdatingTable()
                action.maxActionSlot = actInQueue.slot;
            }
         }
-    }    
+    }
 }
 
 // Make an action for Q learning to learn the distributions
@@ -255,11 +255,11 @@ ReinforcementLearning::ActionChosen ReinforcementLearning::whichSlotDoIUse()
 }
 
 double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalculateRewardFor)
-{   
+{
     // No Action was taken
     if(actionToCalculateRewardFor.slot == 0)
         return 0.0;
-    
+
     double reward;
     uint8_t messages_at_slot = (current_channel_state[actionToCalculateRewardFor.channel] >> ((actionToCalculateRewardFor.slot - 1) * 4)) & (0xF);
     if (messages_at_slot > 0){

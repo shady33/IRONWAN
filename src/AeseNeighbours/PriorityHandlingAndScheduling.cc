@@ -30,13 +30,13 @@ bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
         sendTimer = sendMessageFromQueue1;
         waitTime = 9;
     }
-    
+
     int PayloadLength = frame->getPayloadLength();
     if(PayloadLength == 0)
         PayloadLength = 20;
-    
+
     double delta = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
-    
+
     if(sendingTime < simTime()) return scheduled;
     // Check if the sending time is after the free time
     if((sendingTime >= freeAfterCurrent[band])){
@@ -82,7 +82,7 @@ void PriorityHandlingAndScheduling::handleLowerPacket(cPacket *msg)
         send(msg,"neighbourTalkerOut");
         send(clone,"packetForwarderOut");
     }
-    
+
 }
 
 void PriorityHandlingAndScheduling::initialize(int stage)
@@ -133,6 +133,7 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
                         frame = (*it).frame;
                         lastTime = (*it).sendingTime;
                     }
+                    if((*it).sendingTime < simTime()) sendingQueue[band].erase(it++);
                 }
                 // auto elementinQueue = sendingQueue[band].front();
                 // LoRaMacFrame* frame = (elementinQueue).frame;

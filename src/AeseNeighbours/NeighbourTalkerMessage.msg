@@ -27,4 +27,5 @@ packet NeighbourTalkerMessage {
 
     DevAddr deviceAddress;
     int sequenceNumber;
+    bool isConfirmed;
 }

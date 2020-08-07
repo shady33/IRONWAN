@@ -73,7 +73,7 @@ void NetworkServerApp::forwardToOthers(cMessage *msg)
             socket.sendTo(frame->dup(), destAddr, 1007);
         }
     }
-    if(!inVector) destAddresses.push_back(addrReceived);    
+    if(!inVector) destAddresses.push_back(addrReceived);
 }
 
 void NetworkServerApp::handleMessage(cMessage *msg)
@@ -191,7 +191,7 @@ bool NetworkServerApp::isPacketProcessed(LoRaMacFrame* pkt)
 }
 
 void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
-{   
+{
     AeseAppPacket *app = check_and_cast<AeseAppPacket*>(pkt->getEncapsulatedPacket());
     bool nodeExist = false;
     for(uint i=0;i<knownNodes.size();i++)
@@ -386,7 +386,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
             }
             if(pkt->getConfirmedMessage())
                 sendACK = true;
-            
+
             if((knownNodes[i].receivedFrames > 15) && (knownNodes[i].isAssigned == false)){
                 NeighbourTalkerMessage *f = new NeighbourTalkerMessage("YouHandleTheNode");
                 f->setDeviceAddress(knownNodes[i].srcAddr);

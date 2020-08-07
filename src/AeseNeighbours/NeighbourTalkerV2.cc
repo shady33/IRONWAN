@@ -61,9 +61,11 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
     }else if(msg->arrivedOn("udpIn")){
         if(AeseGWMode > NO_NEIGHBOUR){
             send(PK(msg),"periodOut");
+        }else{
+            delete msg;
         }
     }
-    
+
     // else if(msg->arrivedOn("udpIn")){
     //     EV << "Received Request from neighbour" << endl;
     //     NeighbourTalkerMessage *request = check_and_cast<NeighbourTalkerMessage*>(PK(msg));
@@ -188,14 +190,13 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                             transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
                             send(msg->dup(),"lowerLayerOut");
                         }
-                        
                     }
                 }
                 delete msg;
                 delete frame;
             }
         }else{
-            // LAKSH: These are packets destined especially for me, 
+            // LAKSH: These are packets destined especially for me,
             // they would be gateways making bids
             // TODO: Not there in first version
         }
@@ -225,11 +226,11 @@ void NeighbourTalkerV2::handlePeriodIn(cPacket *pkt)
         msg->setSendingTime(sendingTime);
         transmittedPeriodIn = transmittedPeriodIn + 1;
         send(msg,"lowerLayerOut");
-    }else delete pkt;  
+    }else delete pkt;
 }
 
 
-// LAKSH: this should check if it can be handled. 
+// LAKSH: this should check if it can be handled.
 // if yes, find slot and channel and then broadcast it
 void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
 {
@@ -259,7 +260,7 @@ void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
 
 void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
 {
-    NeighbourTalkerMessage *frame = check_and_cast<NeighbourTalkerMessage*>(pkt);    
+    NeighbourTalkerMessage *frame = check_and_cast<NeighbourTalkerMessage*>(pkt);
     auto iter = ReceivedPacketsList->find(frame->getDeviceAddress());
     // Do I know this node?
     if(iter != ReceivedPacketsList->end()){
@@ -267,8 +268,8 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
         // I have a newer packet
         if(lastSeenSeqNo > frame->getSequenceNumber()){
             auto insertionTime = (iter->second).insertionTime;
-            // Have I seen the node in last 2 seconds?
-            if(simTime() - insertionTime < 2){
+            // Have I seen the node in last 2 seconds? Or is it a non-confirmed node?
+            if((simTime() - insertionTime < 2) || (!frame->getIsConfirmed())){
                 ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
                 // simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
                 simtime_t sendingTime = simTime() + 0.1;

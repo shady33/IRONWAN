@@ -159,7 +159,7 @@ ifeq ($(TOOLCHAIN_NAME),clangc2)
 	$(Q)-$(LN) $(<:%.dll=%.lib) $(@:%.dll=%.lib)
 endif
 
-$O/$(TARGET): $(OBJS)  $(wildcard $(EXTRA_OBJS)) Makefile $(CONFIGFILE)
+$O/$(TARGET): $(OBJS)  $(wildcard $(EXTRA_OBJS)) Makefile $(CONFIGFfILE)
 	@$(MKPATH) $O
 	@echo Creating executable: $@
 	$(Q)$(CXX) $(LDFLAGS) -o $O/$(TARGET) $(OBJS) $(EXTRA_OBJS) $(AS_NEEDED_OFF) $(WHOLE_ARCHIVE_ON) $(LIBS) $(WHOLE_ARCHIVE_OFF) $(OMNETPP_LIBS)

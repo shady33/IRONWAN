@@ -92,7 +92,7 @@ void SimpleLoRaApp::initialize(int stage)
         }
 
         timeToNextPacketOnce = par("timeToNextPacket");
-        
+
         sentPackets = 0;
         receivedADRCommands = 0;
         receivedAckMessages = 0;
@@ -111,6 +111,8 @@ void SimpleLoRaApp::initialize(int stage)
         evaluateADRinNode = par("evaluateADRinNode");
         sfVector.setName("SFVector");
         tpVector.setName("TPVector");
+        sfVector.disable();
+        tpVector.disable();
 
         // Calculate transmission time according to duty cycle and coding rate
         transmissionTimeTable[0] = (49.408  + loRaCR*7.168) / loRaDC / 10.0; //SF 7
@@ -142,7 +144,7 @@ void SimpleLoRaApp::finish()
     // std::cout << "Number of generated packets:" << sentPackets << std::endl;
     // std::cout << getParentModule() << numberOfAcks << std::endl;
     // std::cout << "Number of retransmits: " << totalNoOfRetransmits << std::endl;
-    
+
     cModule *host = getContainingNode(this);
     LinearMobility *mobility = check_and_cast<LinearMobility *>(host->getSubmodule("mobility"));
     Coord coord = mobility->getCurrentPosition();
