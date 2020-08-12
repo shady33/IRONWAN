@@ -33,6 +33,7 @@ void NetworkServerApp::initialize(int stage)
         localPort = par("localPort");
         destPort = par("destPort");
         adrMethod = par("adrMethod").stdstringValue();
+        AeseGWMode = (int)par("AeseGWMode");
         networkServerNumber = DevAddr::generateNetworkServerNumber();
     } else if (stage == INITSTAGE_APPLICATION_LAYER) {
         startUDP();
@@ -225,6 +226,7 @@ void NetworkServerApp::updateKnownNodes(LoRaMacFrame* pkt)
         newNode.numberOfSentADRPackets = 0;
         newNode.lastAppSeqNoProcessed = app->getActuatorSequenceNumbers(0);
         newNode.receivedAppFrames = 1;
+        newNode.lastAckedFrame = -1;
         newNode.historyAllSNIR = new cOutVector;
         newNode.historyAllSNIR->setName("Vector of SNIR per node");
         //newNode.historyAllSNIR->record(pkt->getSNIR());
@@ -392,6 +394,16 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
                 f->setDeviceAddress(knownNodes[i].srcAddr);
                 knownNodes[i].isAssigned = true;
                 socket.sendTo(f,pickedGateway,1007);
+            }
+
+            if(sendACK || sendADR || sendADRAckRep){
+                AeseAppPacket *app = check_and_cast<AeseAppPacket*>(pkt->getEncapsulatedPacket());
+                if(AeseGWMode == 3){
+                    if(app->getActuatorSequenceNumbers(0) == knownNodes[i].lastAckedFrame){
+                        sendACK = false;
+                    }
+                }
+                knownNodes[i].lastAckedFrame = app->getActuatorSequenceNumbers(0);
             }
         }
     }

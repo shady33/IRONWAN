@@ -46,6 +46,7 @@ public:
     int lastAppSeqNoProcessed;
     int receivedAppFrames;
     int numberOfSentADRPackets;
+    int lastAckedFrame;
     std::list<double> receivedSNIR;
     cOutVector *historyAllSNIR;
     cOutVector *historyAllRSSI;
@@ -71,6 +72,7 @@ public:
 class INET_API NetworkServerApp : public cSimpleModule, cListener
 {
   protected:
+    int AeseGWMode;
     std::vector<knownNode> knownNodes;
     std::vector<knownGW> knownGateways;
     std::vector<receivedPacket> receivedPackets;

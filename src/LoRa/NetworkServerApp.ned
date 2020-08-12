@@ -25,6 +25,7 @@ simple NetworkServerApp like IUDPApp
     string destAddresses = default(""); // list of IP addresses, separated by spaces ("": don't send)
     string localAddress = default("");
     int destPort = default(-1);
+    int AeseGWMode = default(0);
     bool evaluateADRinServer = default(false);
 	int networkServerNumber = default(0);
 	string adrMethod = default("max");
