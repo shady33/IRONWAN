@@ -181,7 +181,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                     ReceivedPacket& rxPkt = iter->second;
                     if(((simTime() - rxPkt.insertionTime) < 2) && (scheduler->canThisBeScehduled(1,ACCEPTED_BIDS_ACKS,msg->getSendingTime()))){
                         // Decapsulate and add the correct type
-                        if((AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
+                        if((AeseGWMode == NEIGHBOUR_WITH_BIDS) || (AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
                             if (intuniform(0,10) < 5){
                                 transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
                                 send(msg->dup(),"lowerLayerOut");

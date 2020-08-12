@@ -66,7 +66,7 @@ void PeriodCalculator::handleMessage(cMessage *msg)
             nodePeriodInfo.timesTried = nodePeriodInfo.timesTried + 1;
 
             if(nodePeriodInfo.currentPeriod > 0){
-                if(AeseGWMode == 3){
+                if(AeseGWMode > 1){ // Modes 2 and 3
                     auto iter = NodesBelongToMe->find(addr);
                     if(iter != NodesBelongToMe->end()){
                         scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
@@ -138,7 +138,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
                     if(nodePeriodInfo.currentPeriod > 0){
-                        if(AeseGWMode == 3){
+                        if(AeseGWMode > 1 ){ // Modes 2 and 3
                             auto iter = NodesBelongToMe->find(txAddr);
                             if(iter != NodesBelongToMe->end()){
                                 scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
