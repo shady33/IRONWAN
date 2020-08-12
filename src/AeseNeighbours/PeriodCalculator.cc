@@ -138,12 +138,12 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 if(nodePeriodInfo.numberOfMessagesSeen > 11){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
                     if(nodePeriodInfo.currentPeriod > 0){
-                        if(AeseGWMode != 3){
+                        if(AeseGWMode == 3){
                             auto iter = NodesBelongToMe->find(txAddr);
                             if(iter != NodesBelongToMe->end()){
                                 scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
                             }
-                        }else{
+                        }else if(AeseGWMode == 1){
                             scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
                         }
                     }
