@@ -46,7 +46,6 @@ public:
     int lastAppSeqNoProcessed;
     int receivedAppFrames;
     int numberOfSentADRPackets;
-    int lastAckedFrame;
     std::list<double> receivedSNIR;
     cOutVector *historyAllSNIR;
     cOutVector *historyAllRSSI;
