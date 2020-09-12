@@ -39,6 +39,7 @@ namespace inet {
 class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
 {
     private:
+	bool switched;
         cMessage *rtEvent;
         cSimulinkRTScheduler *rtScheduler;
 

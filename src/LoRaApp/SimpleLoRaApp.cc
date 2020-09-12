@@ -45,7 +45,7 @@ void SimpleLoRaApp::initialize(int stage)
            mobility->par("initialX").setDoubleValue(coordsValues.first);
            mobility->par("initialY").setDoubleValue(coordsValues.second);
         }
-
+	switched = false;
         rtEvent = new cMessage("rtEvent");
         retryLimit = par("retryLimit");
 
@@ -219,7 +219,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
             noOfRetransmits++;
             if(noOfRetransmits < retryLimit){
                 sendJoinRequest();
-                noOfRetransmits = noOfRetransmits + 1;
+                ///noOfRetransmits = noOfRetransmits + 1;
                 // retryMeasurements = new cMessage("retryMeasurements");
                 scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }else{
@@ -252,6 +252,12 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 i = i + 1;
                 if(i==5) break;
             } while(timeToNextPacket <= time);
+	    if((simTime() > 86400) && (!switched)){
+	    	switched = true;
+		if(uniform(0,10) < 4){
+			timeToNextPacketOnce = 600;
+		}
+	    }
             if(numberOfPacketsToSend == 0 || numberOfPacketsToSend > sentPackets)
                 scheduleAt(simTime() + timeToNextPacket, sendMeasurements);
 	        else{
