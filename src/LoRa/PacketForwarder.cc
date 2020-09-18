@@ -326,7 +326,14 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     frame->setSNIR(cInfo->getMinSNIR());
     EV << frame->getTransmitterAddress() << frame->getMsgType() << endl;
     // std::cout << getParentModule() << "," << frame->getLoRaCF() << "," << frame->getLoRaSF() << "," << frame->getLoRaBW() << "," << frame->getLoRaCR() << std::endl;
-    listOfSuccessfulMessages.record(frame->getLoRaCF().get());
+    // listOfSuccessfulMessages.record(frame->getLoRaCF().get());
+    // LJB: UPDATING listOfSuccessfulMessages to output frequency and time on air
+    int PayloadLength = frame->getPayloadLength();
+    if(PayloadLength == 0)
+        PayloadLength = 20;
+    double toa = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+    listOfSuccessfulMessages.record(frame->getLoRaCF().get()+toa);
+
     //(frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
     listOfSuccessfulNodes.record((frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3));
     macCntValues.record(frame->getSequenceNumber());
