@@ -2,6 +2,7 @@
 #define __AESE_REINFORCEMENT_LEARNING_H_
 
 #include <omnetpp.h>
+#include "timeOnAir.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "DevAddr.h"
 #include "LoRaMacFrame_m.h"

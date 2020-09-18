@@ -6,7 +6,7 @@ simple ReinforcementLearning
     int numberOfFutureSlots = default(8);
     double alphaRL = default(0.8);
     double discountFactor = default(0.1);
-    double epsilon = default(0.2);
+    double epsilon = default(0.99);
     
     @class(inet::ReinforcementLearning);
     gates:
