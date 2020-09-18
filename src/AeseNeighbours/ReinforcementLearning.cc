@@ -105,7 +105,7 @@ void ReinforcementLearning::handleLoRaFrame(cPacket *pkt)
             PayloadLength = 20;
         double toa = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
         toa = toa - 0.1;
-        double pastToUpdate = std::min(int(ceil(toa/0.1)),numberOfPastSlots);
+        double pastToUpdate = std::max(0,std::min(int(ceil(toa/0.1)),numberOfPastSlots));
         for(int i=0;i<pastToUpdate;i++){
             current_channel_state[channelNumber] = ((1 << (4*i)) + current_channel_state[channelNumber]) & channels_mask; 
         }
