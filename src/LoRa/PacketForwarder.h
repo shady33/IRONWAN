@@ -109,6 +109,7 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
   protected:
     std::vector<L3Address> destAddresses;
     std::vector<L3Address> gwAddresses;
+    L3Address myNetworkServer;
     int localPort = -1, destPort = -1;
     int numberOfGateways;
     // state
@@ -130,10 +131,6 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     void receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details) override;
     void receiveSignal(cComponent *src, simsignal_t id,double value, cObject *details) override;
-    void scheduleDownlink(int val,cPacket *pk);
-    void sendFeedbackMessage(bool first);
-    void sendActuationMessage();
-    void sendActuationMessageNow(AeseAppPacket *appPacket);
     void updateAndLogNode(LoRaMacFrame* pkt);
     void CountUniqueNodes(LoRaMacFrame* pkt);
     void GWinGrid();

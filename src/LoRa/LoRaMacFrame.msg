@@ -87,4 +87,5 @@ packet LoRaMacFrame {
     simtime_t sendingTime;
     simtime_t generatedTime;
     int type @enum(MessagesTypesAndPriority);
+    bool isFromMyGateway;
 }

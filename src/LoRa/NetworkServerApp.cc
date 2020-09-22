@@ -50,6 +50,8 @@ void NetworkServerApp::initialize(int stage)
         sequenceNumber = 0;
         receivedSomething = 0;
         sentMsgs = 0;
+        numberOfMessagesUsedFromOtherGateway = 0;
+        numberOfMessagesRequestedOtherGatewayToTransmit = 0;
     }
 }
 
@@ -87,7 +89,7 @@ void NetworkServerApp::handleMessage(cMessage *msg)
                 numOfReceivedPackets++;
             counterOfReceivedPacketsPerSF[frame->getLoRaSF()-7]++;
         }
-        forwardToOthers(msg);
+        // forwardToOthers(msg);
         updateKnownNodes(frame);
         processLoraMACPacket(PK(msg));
     }else if (msg->isSelfMessage()) {
@@ -142,6 +144,8 @@ void NetworkServerApp::finish()
     recordScalar("numOfReceivedPackets", numOfReceivedPackets);
     recordScalar("ReceivedPacketsForNS",receivedSomething);
     recordScalar("SentADRmessages", sentMsgs);
+    recordScalar("PartitionedUsed",numberOfMessagesUsedFromOtherGateway);
+    recordScalar("PartitionedRequested",numberOfMessagesRequestedOtherGatewayToTransmit);
     recordScalar("numOfReceivedPacketsPerSF SF7", counterOfReceivedPacketsPerSF[0]);
     recordScalar("numOfReceivedPacketsPerSF SF8", counterOfReceivedPacketsPerSF[1]);
     recordScalar("numOfReceivedPacketsPerSF SF9", counterOfReceivedPacketsPerSF[2]);
@@ -250,7 +254,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         if(receivedPackets[i].rcvdPacket->getTransmitterAddress() == pkt->getTransmitterAddress() && receivedPackets[i].rcvdPacket->getSequenceNumber() == pkt->getSequenceNumber())
         {
             packetExists = true;
-            receivedPackets[i].possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
+            receivedPackets[i].possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI(),pkt->getIsFromMyGateway());
             delete pkt;
             i = receivedPackets.size();
         }
@@ -264,7 +268,7 @@ void NetworkServerApp::addPktToProcessingTable(LoRaMacFrame* pkt)
         rcvPkt.timeToSend = pkt->getGeneratedTime() + 1.9;
         rcvPkt.endOfWaiting = new cMessage("endOfWaitingWindow");
         rcvPkt.endOfWaiting->setContextPointer(pkt);
-        rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI());
+        rcvPkt.possibleGateways.emplace_back(cInfo->getSrcAddr(), math::fraction2dB(pkt->getSNIR()), pkt->getRSSI(),pkt->getIsFromMyGateway());
         // LAKSH: Changing from 1.8 to 0.5 so that gateways get messages as
         // soon as possible
         scheduleAt(simTime() + 0.2, rcvPkt.endOfWaiting); //1.2 // 1.8
@@ -278,7 +282,11 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
     L3Address pickedGateway;
     double SNIRinGW = -99999999999;
     double RSSIinGW = -99999999999;
+    L3Address pickedGatewayOnlyMine;
+    double SNIRinGWOnlyMine = -99999999999;
+    double RSSIinGWOnlyMine = -99999999999;
     int packetNumber;
+    bool receivedFromMyGateway = false;
     for(uint i=0;i<receivedPackets.size();i++)
     {
         if(receivedPackets[i].rcvdPacket->getTransmitterAddress() == frame->getTransmitterAddress() && receivedPackets[i].rcvdPacket->getSequenceNumber() == frame->getSequenceNumber())
@@ -292,6 +300,13 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
                     SNIRinGW = std::get<1>(receivedPackets[i].possibleGateways[j]);
                     pickedGateway = std::get<0>(receivedPackets[i].possibleGateways[j]);
                 }
+                if(SNIRinGWOnlyMine < std::get<1>(receivedPackets[i].possibleGateways[j]))
+                {
+                    RSSIinGWOnlyMine = std::get<2>(receivedPackets[i].possibleGateways[j]);
+                    SNIRinGWOnlyMine = std::get<1>(receivedPackets[i].possibleGateways[j]);
+                    pickedGatewayOnlyMine = std::get<0>(receivedPackets[i].possibleGateways[j]);
+                }
+                if(std::get<3>(receivedPackets[i].possibleGateways[j]) == true) receivedFromMyGateway = true;
             }
         }
     }
@@ -301,7 +316,12 @@ void NetworkServerApp::processScheduledPacket(cMessage* selfMsg)
         counterOfReceivedPackets++;
     }
     receivedRSSI.collect(frame->getRSSI());
-    evaluateADR(frame, pickedGateway, SNIRinGW, RSSIinGW, receivedPackets[packetNumber].timeToSend);
+    if(receivedFromMyGateway)
+        evaluateADR(frame, pickedGatewayOnlyMine, SNIRinGWOnlyMine, RSSIinGWOnlyMine, receivedPackets[packetNumber].timeToSend,false);
+    else{
+        numberOfMessagesUsedFromOtherGateway += 1;
+        evaluateADR(frame, pickedGateway, SNIRinGW, RSSIinGW, receivedPackets[packetNumber].timeToSend,true);
+    }
     delete receivedPackets[packetNumber].rcvdPacket;
     delete selfMsg;
     receivedPackets.erase(receivedPackets.begin()+packetNumber);
@@ -332,7 +352,7 @@ void NetworkServerApp::sendBackDownlink(LoRaMacFrame* frame, L3Address pickedGat
     socket.sendTo(response, pickedGateway, destPort);
 }
 
-void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW, simtime_t timeToSend)
+void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, double SNIRinGW, double RSSIinGW, simtime_t timeToSend,bool countDownlinkTransmission)
 {
     bool sendADR = false;
     bool sendADRAckRep = false;
@@ -388,12 +408,12 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
             if(pkt->getConfirmedMessage())
                 sendACK = true;
 
-            if((knownNodes[i].receivedFrames > 15) && (knownNodes[i].isAssigned == false)){
-                NeighbourTalkerMessage *f = new NeighbourTalkerMessage("YouHandleTheNode");
-                f->setDeviceAddress(knownNodes[i].srcAddr);
-                knownNodes[i].isAssigned = true;
-                socket.sendTo(f,pickedGateway,1007);
-            }
+            // if((knownNodes[i].receivedFrames > 15) && (knownNodes[i].isAssigned == false)){
+            //     NeighbourTalkerMessage *f = new NeighbourTalkerMessage("YouHandleTheNode");
+            //     f->setDeviceAddress(knownNodes[i].srcAddr);
+            //     knownNodes[i].isAssigned = true;
+            //     socket.sendTo(f,pickedGateway,1007);
+            // }
         }
     }
 
@@ -466,6 +486,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
         frameToSend->setSendingTime(timeToSend);
+        if(countDownlinkTransmission) numberOfMessagesRequestedOtherGatewayToTransmit += 1;
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }else if(sendACK){
         AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
@@ -487,6 +508,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         frameToSend->setSequenceNumber(sequenceNumber);
         sequenceNumber = sequenceNumber + 1;
         frameToSend->setSendingTime(timeToSend);
+        if(countDownlinkTransmission) numberOfMessagesRequestedOtherGatewayToTransmit += 1;
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }
     // else{
