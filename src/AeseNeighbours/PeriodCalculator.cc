@@ -69,10 +69,10 @@ void PeriodCalculator::handleMessage(cMessage *msg)
                 if(AeseGWMode > 1){ // Modes 2 and 3
                     auto iter = NodesBelongToMe->find(addr);
                     if(iter != NodesBelongToMe->end()){
-                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                        scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
                     }
                 }else if(AeseGWMode == 1){
-                    scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                    scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
                 }
             }
 
@@ -141,10 +141,10 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                         if(AeseGWMode > 1 ){ // Modes 2 and 3
                             auto iter = NodesBelongToMe->find(txAddr);
                             if(iter != NodesBelongToMe->end()){
-                                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                                scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
                             }
                         }else if(AeseGWMode == 1){
-                            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + 0.2, nodePeriodInfo.msg);
+                            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
                         }
                     }
                     // if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )

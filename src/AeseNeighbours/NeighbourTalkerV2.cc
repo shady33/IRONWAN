@@ -137,7 +137,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
     	if (AeseGWMode == NO_NEIGHBOUR){
 	    	delete frame;
 	    }else if(AeseGWMode > NO_NEIGHBOUR){
-		    handleFailedAcks(frame);
+		handleFailedAcks(frame);
 	    }
     }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){
         // std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
@@ -153,6 +153,7 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
             if(frame->getMsgType() == JOIN_REQUEST){
                 forwardToOthers(frame);
                 physicallayer::ReceptionIndication *cInfo = check_and_cast<physicallayer::ReceptionIndication *>(pkt->getControlInfo());
+		AeseAppPacket *pakcet = dynamic_cast<AeseAppPacket*>(frame->getEncapsulatedPacket());	
                 W w_rssi = cInfo->getMinRSSI();
                 double rssi = w_rssi.get()*1000;
                 // This gets added to received packets table
@@ -160,14 +161,16 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                 auto iter = ReceivedPacketsList->find(txAddr);
                 if(iter == ReceivedPacketsList->end()){
                     // Not found in table, insert
-                    (*ReceivedPacketsList)[txAddr] = ReceivedPacket(LORA,frame->getSequenceNumber(),frame,simTime(),rssi);
+                    //(*ReceivedPacketsList)[txAddr] = ReceivedPacket(LORA,frame->getSequenceNumber(),frame,simTime(),rssi);
+                    (*ReceivedPacketsList)[txAddr] = ReceivedPacket(LORA,pakcet->getActuatorSequenceNumbers(0),frame,simTime(),rssi);
                 }else{
                     // Already in table, delete old and add new
                     ReceivedPacket& rxPkt = iter->second;
                     rxPkt.insertionTime = simTime();
                     delete rxPkt.frame;
                     rxPkt.frame = frame;
-                    rxPkt.lastSeqNo = frame->getSequenceNumber();
+                    //rxPkt.lastSeqNo = frame->getSequenceNumber();
+		    rxPkt.lastSeqNo = pakcet->getActuatorSequenceNumbers(0);
                     rxPkt.RSSI = rssi;
                 }
             }else if(frame->getMsgType() == GW_HANDOFF_MESSAGE){
