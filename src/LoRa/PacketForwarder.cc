@@ -118,7 +118,7 @@ void PacketForwarder::initialize(int stage)
         listOfSuccessfulNodes.setName("listOfSuccessfulNodes");
         actualCntValues.setName("listOfCntValues");
 	    macCntValues.setName("listOfMacCntValues");
-
+        
 	    if(enableDQ){
             CRQVector.setName("CRQVector");
             DTQVector.setName("DTQVector");
@@ -134,6 +134,7 @@ void PacketForwarder::initialize(int stage)
                 scheduleAt(simTime() + actuationPeriod,sendActuationNoSimulink);
             }
         }
+        NodesBelongToMe = new NodesBelongToMeStruct();
         startUDP();
         getSimulation()->getSystemModule()->subscribe("LoRa_AppPacketSent", this);
     }
@@ -228,6 +229,11 @@ void PacketForwarder::handleMessage(cMessage *msg)
         EV << "Received UDP packet" << endl;
         sentMsgs++;
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(PK(msg));
+        DevAddr addr = frame->getReceiverAddress();
+        // This is supposed to be handled by me
+        if(frame->getMsgType() == JOIN_REPLY){
+            (*NodesBelongToMe)[addr] = destAddresses[addr.getAddressByte(0)];
+        }
         frame->setType(MY_ACKS);
         send(frame, "lowerLayerOut");
     }
@@ -266,20 +272,17 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     // std::cout << "Frame recv from " << frame->getTransmitterAddress() << std::endl;
     
     if(packettype == JOIN_REQUEST){
+        EV << "Sending to network server 0" << endl;
         if (frame->getControlInfo())
             delete frame->removeControlInfo();
-
-        for(auto destAddr: destAddresses){
-            EV << "Sending to server" << destAddr << endl;
-            auto f = frame->dup();
-            if(destAddr == myNetworkServer){
-                f->setIsFromMyGateway(true);
-            }else{
-                f->setIsFromMyGateway(false);
-            }
-            socket.sendTo(f, destAddr, destPort);
-        }
-        delete frame;
+        socket.sendTo(frame,destAddresses[0],destPort);
+    }else if(packettype == DATA){
+        // Send to correct networkserver
+        auto iter = NodesBelongToMe->find(frame->getTransmitterAddress());
+        if(iter != NodesBelongToMe->end()){
+            EV << "Sending to server" << iter->second << endl;
+            socket.sendTo(frame, iter->second, destPort);
+        }else delete frame;
     }
 }
 

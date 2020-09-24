@@ -359,7 +359,10 @@ void LoRaMac::sendDataFrame(LoRaMacFrame *frameToSend)
     radio->setRadioMode(IRadio::RADIO_MODE_TRANSMITTER);
 
     LoRaMacFrame *frameCopy = frameToSend->dup();
-    frameCopy->setMsgType(JOIN_REQUEST);
+    if(!strcmp(frameCopy->getName(),"Join_Request"))
+        frameCopy->setMsgType(JOIN_REQUEST);
+    else if(frameCopy->getName() == "DataFrame")
+        frameCopy->setMsgType(UPLINK_MESSAGE);
     LoRaMacControlInfo *ctrl = new LoRaMacControlInfo();
     ctrl->setSrc(frameCopy->getTransmitterAddress());
     ctrl->setDest(frameCopy->getReceiverAddress());

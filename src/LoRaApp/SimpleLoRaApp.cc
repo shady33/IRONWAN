@@ -45,7 +45,8 @@ void SimpleLoRaApp::initialize(int stage)
            mobility->par("initialX").setDoubleValue(coordsValues.first);
            mobility->par("initialY").setDoubleValue(coordsValues.second);
         }
-	switched = false;
+        connected = false;
+	    switched = false;
         rtEvent = new cMessage("rtEvent");
         retryLimit = par("retryLimit");
 
@@ -168,59 +169,14 @@ void SimpleLoRaApp::finish()
 void SimpleLoRaApp::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
-        std::string s(msg->getName());
-        if(s.compare("rtEvent") == 0)
-        {
-            if(numRecvBytes >= 8){
-                union{
-                    double d;
-                    unsigned char c[8];
-                }z;
-                memcpy(z.c,&recvBuffer[numRecvBytes-8],8);
-
-                // time * std::pow(10,4) + data * std::pow(10,-4) + sign(data) * std::pow(10,-1)
-                double intpart,fractpart,time,sign,value;
-
-                fractpart = std::modf(z.d,&intpart);
-                time = intpart/10000;
-                std::modf(fractpart * 10, &sign);
-                value = fractpart * 10000;
-                if(sign == 1){
-                    value = 1000 - value;
-                }
-
-                double dutyCycling;
-                if(loRaSF == 7) dutyCycling = transmissionTimeTable[0];
-                if(loRaSF == 8) dutyCycling = transmissionTimeTable[1];
-                if(loRaSF == 9) dutyCycling = transmissionTimeTable[2];
-                if(loRaSF == 10) dutyCycling = transmissionTimeTable[3];
-                if(loRaSF == 11) dutyCycling = transmissionTimeTable[4];
-                if(loRaSF == 12) dutyCycling = transmissionTimeTable[5];
-
-                dataToSend = value;
-                if(noOfRetransmits == 0)
-                {
-                    if(((time - timeOfLastPacket) > dutyCycling) || first){
-                    first = false;
-                    startTime = simTime();
-                    sendJoinRequest();
-                    timeOfLastPacket = time;
-                    // retryMeasurements = new cMessage("retryMeasurements");
-                    scheduleAt(simTime() + uniform(10,15),retryMeasurements);
-                    noOfRetransmits = 1;
-                    }
-                }
-
-                numRecvBytes = 0;
-            }
-        }
-        else if(msg == retryMeasurements)
+        if(msg == retryMeasurements)
         {
             noOfRetransmits++;
             if(noOfRetransmits < retryLimit){
-                sendJoinRequest();
-                ///noOfRetransmits = noOfRetransmits + 1;
-                // retryMeasurements = new cMessage("retryMeasurements");
+                if(!connected)
+                    sendJoinRequest();
+                else
+                    sendDataPacket();
                 scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }else{
                 totalNoOfRetransmits += noOfRetransmits;
@@ -229,16 +185,15 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
         }
         else if (msg == sendMeasurements)
         {
-            // if(noOfRetransmits == 1)
-            //     startTime = simTime();
-
             if(!retryMeasurements->isScheduled())
             {
                 startTime = simTime();
                 seqeuenceNumber++;
-                sendJoinRequest();
+                if(!connected)
+                    sendJoinRequest();
+                else
+                    sendDataPacket();
                 noOfRetransmits = 0;
-                // retryMeasurements = new cMessage("retryMeasurements");
                 scheduleAt(simTime() + uniform(10,15),retryMeasurements);
             }
             sentPackets++;
@@ -277,44 +232,19 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
 void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
 {
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
-    if(retryLimit > 1){
-        numberOfAcks += 1;
-        cancelEvent(retryMeasurements);
-        e2edelay.record(simTime()-startTime);
-        retransmits.record(noOfRetransmits);
-        totalNoOfRetransmits += noOfRetransmits;
-        noOfRetransmits = 0;
-    }
-    if(packet->getKind() == DATADOWN){
-        // cancelEvent(retryMeasurements);
-        // noOfRetransmits = 0;
-        // e2edelay.record(simTime()-startTime);
-        // retransmits.record(noOfRetransmits);
-        // std::cout << simTime()-startTime << std::endl;
-    }else if(packet->getKind() == DATANOSOCKET){
-        EV << "Received Downlink not to be sent on socket" << endl;
-        // if(retryLimit != 0){
-        // cancelEvent(retryMeasurements);
-        // retransmits.record(noOfRetransmits);
-        // noOfRetransmits = 0;
-        // e2edelay.record(simTime()-startTime);
-            // double time;
-            // if(loRaSF == 7) time = transmissionTimeTable[0];
-            // if(loRaSF == 8) time = transmissionTimeTable[1];
-            // if(loRaSF == 9) time = transmissionTimeTable[2];
-            // if(loRaSF == 10) time = transmissionTimeTable[3];
-            // if(loRaSF == 11) time = transmissionTimeTable[4];
-            // if(loRaSF == 12) time = transmissionTimeTable[5];
-            // do {
-            //     timeToNextPacket = par("timeToNextPacket");
-            //     //if(timeToNextPacket < 3) error("Time to next packet must be grater than 3");
-            // } while(timeToNextPacket <= time);
-            // sendMeasurements = new cMessage("sendMeasurements");
-            // scheduleAt(simTime()+timeToNextPacket, sendMeasurements);
-        // }
-    }else if(packet->getMsgType() == JOIN_REPLY){
+    if(packet->getMsgType() == JOIN_REPLY){
         receivedAckMessages++;
+        loRaCF = packet->getLoRaCF();
+        connected = true;
     }else{
+        if(retryLimit > 1){
+            numberOfAcks += 1;
+            cancelEvent(retryMeasurements);
+            e2edelay.record(simTime()-startTime);
+            retransmits.record(noOfRetransmits);
+            totalNoOfRetransmits += noOfRetransmits;
+            noOfRetransmits = 0;
+        }
         if (simTime() >= getSimulation()->getWarmupPeriod())
             receivedADRCommands++;
         if(evaluateADRinNode)
@@ -343,9 +273,44 @@ bool SimpleLoRaApp::handleOperationStage(LifecycleOperation *operation, int stag
     return true;
 }
 
-void SimpleLoRaApp::sendJoinRequest()
+
+void SimpleLoRaApp::sendDataPacket()
 {
     AeseAppPacket *request = new AeseAppPacket("DataFrame");
+    request->setMsgType(DATA);
+    lastSentMeasurement = rand();
+    request->setSampleMeasurement(dataToSend);
+    request->setPacketGeneratedTime(0,startTime);
+    double timeOnAirValue = timeOnAir(loRaSF, loRaBW, 40, 1);
+    request->setPacketGeneratedTime(1,simTime()+timeOnAirValue);
+    request->setSensorNumber(sensorNumber);
+    request->setActuatorSequenceNumbers(0,seqeuenceNumber);
+
+    //add LoRa control info
+    LoRaMacControlInfo *cInfo = new LoRaMacControlInfo;
+    cInfo->setLoRaTP(loRaTP);
+    cInfo->setLoRaCF(loRaCF);
+    cInfo->setLoRaSF(loRaSF);
+    cInfo->setLoRaBW(loRaBW);
+    cInfo->setLoRaCR(loRaCR);
+    cInfo->setNumberOfFrames(1);
+    cInfo->setPayloadLength(40);
+    cInfo->setGeneratedTime(simTime()+timeOnAirValue);
+    if(retryLimit == 1){
+        cInfo->setConfirmedMessage(false);
+    }else{
+        cInfo->setConfirmedMessage(true);
+    }
+    request->setControlInfo(cInfo);
+    sfVector.record(loRaSF);
+    tpVector.record(loRaTP);
+    send(request, "appOut");
+    emit(LoRa_AppPacketSent, loRaSF);
+}
+
+void SimpleLoRaApp::sendJoinRequest()
+{
+    AeseAppPacket *request = new AeseAppPacket("Join_Request");
     request->setMsgType(JOIN_REQUEST);
     lastSentMeasurement = rand();
     request->setSampleMeasurement(dataToSend);

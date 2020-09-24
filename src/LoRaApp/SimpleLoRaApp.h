@@ -62,7 +62,8 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         std::pair<double,double> generateUniformCircleCoordinates(double radius, double gatewayX, double gatewayY);
         void sendJoinRequest();
         void sendDownMgmtPacket();
-
+        void sendDataPacket();
+        
         int seqeuenceNumber;
         int numberOfPacketsToSend;
         int sentPackets;
@@ -96,6 +97,7 @@ class INET_API SimpleLoRaApp : public cSimpleModule, public ILifecycle
         bool success;
         int numberOfAcks;
         long totalNoOfRetransmits;
+        bool connected;
     public:
         SimpleLoRaApp() {}
         virtual ~SimpleLoRaApp();

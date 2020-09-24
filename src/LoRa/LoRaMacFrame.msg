@@ -47,6 +47,7 @@ enum MacPacketType
     GW_PING_MESSAGE = 5;
     ACK_ADR_PACKET = 6;
     GW_HANDOFF_MESSAGE = 7;
+    UPLINK_MESSAGE = 8;
 }
 
 enum CollisionInfo

@@ -17,6 +17,12 @@
 // TODO generated message class
 //
 
+cplusplus {{
+#include <inet/common/Units.h>
+}}
+
+class noncobject inet::units::values::Hz;
+
 enum AppPacketType
 {
     JOIN_REQUEST = 1;
@@ -51,4 +57,6 @@ packet AeseAppPacket {
     int actuatorNumber[128];
     int actuatorSequenceNumbers[128];
     int sensorNumber;
+
+    inet::units::values::Hz LoRaCF;
 }

@@ -106,6 +106,14 @@ class INET_API PacketForwarder : public cSimpleModule, public cListener
     int sentMsgs;
     int counterOfSentPacketsFromNodes = 0;
     int counterOfReceivedPackets = 0;
+    struct DevAddr_compare
+    {
+        bool operator()(const DevAddr& d1, const DevAddr& d2) const { return d1.compareTo(d2) < 0; }
+    };
+
+    typedef std::map<DevAddr, L3Address, DevAddr_compare> NodesBelongToMeStruct;
+    NodesBelongToMeStruct *NodesBelongToMe = nullptr;
+
   protected:
     std::vector<L3Address> destAddresses;
     std::vector<L3Address> gwAddresses;
