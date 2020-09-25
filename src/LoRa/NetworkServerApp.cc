@@ -83,7 +83,7 @@ void NetworkServerApp::handleMessage(cMessage *msg)
         LoRaMacFrame *frame = check_and_cast<LoRaMacFrame *>(msg);
         if(frame->getMsgType() == JOIN_REQUEST){
             allocatePacket(PK(msg));
-        }else if(frame->getMsgType() == DATA){
+        }else if(frame->getMsgType() == UPLINK_MESSAGE){
             if (simTime() >= getSimulation()->getWarmupPeriod())
             {
                 if((frame->getTransmitterAddress()).getAddressByte(0) == networkServerNumber)
@@ -171,6 +171,7 @@ void NetworkServerApp::finish()
         if(!knownNodes[i].confirmedNode && knownNodes[i].isForMe)
             unackedNodes = unackedNodes + knownNodes[i].receivedFrames;
         if(knownNodes[i].isForMe){
+
             uint32_t node_num_with_frames = (knownNodes[i].srcAddr.getInt()) & 0x0000ffffUL;
             node_num_with_frames = (node_num_with_frames << 16) + knownNodes[i].receivedAppFrames;
             numberOfReceivedFrames.record(node_num_with_frames);

@@ -270,13 +270,13 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     int packettype = frame->getMsgType();
     //for (std::vector<nodeEntry>::iterator it = knownNodes.begin() ; it != knownNodes.end(); ++it)
     // std::cout << "Frame recv from " << frame->getTransmitterAddress() << std::endl;
-    
+    if (frame->getControlInfo())
+            delete frame->removeControlInfo();
     if(packettype == JOIN_REQUEST){
         EV << "Sending to network server 0" << endl;
-        if (frame->getControlInfo())
-            delete frame->removeControlInfo();
+
         socket.sendTo(frame,destAddresses[0],destPort);
-    }else if(packettype == DATA){
+    }else if(packettype == UPLINK_MESSAGE){
         // Send to correct networkserver
         auto iter = NodesBelongToMe->find(frame->getTransmitterAddress());
         if(iter != NodesBelongToMe->end()){
