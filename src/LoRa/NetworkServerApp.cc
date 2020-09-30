@@ -385,26 +385,30 @@ void NetworkServerApp::processJoinRequest(cMessage* selfMsg)
             }
             double weight = pow(2,frame->getLoRaSF() - 7);
             double total = totalChannelOccupation.occ[0] + totalChannelOccupation.occ[1] + totalChannelOccupation.occ[2] + weight;
-
-            auto entropyoGC = new optionsGWChannel();
+            
+            optionsGWChannel entropyoGC;
             for(uint j=0;j<oGC.size();j++){
                 int channel = std::get<1>(oGC[j]);
                 totalChannelOccupation.occ[channel] += weight;
                 double entropy = 0;
                 for(int k=0;k<3;k++){
-                    double frequency = totalChannelOccupation.occ[k] / total;
-                    entropy += -(frequency * log2(frequency));
+                    if(totalChannelOccupation.occ[k] > 0){    
+                        double frequency = totalChannelOccupation.occ[k] / total;
+                        entropy += -(frequency * log2(frequency));
+                    }
                 }
                 totalChannelOccupation.occ[channel] -= weight;
+    
                 if(entropy > max_entropy) {
-                    entropyoGC->clear();
+                    entropyoGC.clear();
                     max_entropy = entropy;
-                    entropyoGC->emplace_back(std::get<0>(oGC[j]),channel,entropy);
+                    entropyoGC.emplace_back(std::get<0>(oGC[j]),channel,entropy);
                 }else if(entropy == max_entropy){
-                    entropyoGC->emplace_back(std::get<0>(oGC[j]),channel,entropy);
+                    entropyoGC.emplace_back(std::get<0>(oGC[j]),channel,entropy);
                 }
             }
-            final_option = entropyoGC->at(intuniform(0,entropyoGC->size()));
+            int opt = intuniform(0,entropyoGC.size()-1);
+            final_option = entropyoGC[opt];
         }
     }
     
@@ -413,30 +417,37 @@ void NetworkServerApp::processJoinRequest(cMessage* selfMsg)
     
     final_gw = std::get<0>(final_option);
     final_channel = 868100000 + (std::get<1>(final_option) * 200000);
-    auto it = FlipMapList->find(std::get<0>(final_option));
-    (it->second).occ[std::get<1>(final_option)] += std::get<2>(final_option);
 
-    // Create a packet to transmit
-    AeseAppPacket *datapacket = new AeseAppPacket("JoinReply");
-    datapacket->setMsgType(JOIN_REPLY);
-    datapacket->setLoRaCF(inet::units::values::Hz(final_channel));
+    if((final_channel < 868600000) && (final_channel > 868000000)){
 
-    LoRaMacFrame *frameToSend = new LoRaMacFrame("JoinReply");
-    frameToSend->setMsgType(JOIN_REPLY);
-    frameToSend->encapsulate(datapacket);
-    frameToSend->setReceiverAddress(packetsToProcess[packetNumber].rcvdPacket->getTransmitterAddress());
-    frameToSend->setLoRaTP(14);
-    frameToSend->setLoRaCF(inet::units::values::Hz(869460500));
-    frameToSend->setLoRaSF(9);
-    frameToSend->setLoRaBW(packetsToProcess[packetNumber].rcvdPacket->getLoRaBW());
-    frameToSend->setLoRaCR(1);
-    sentMsgs++;
-    frameToSend->setSequenceNumber(sequenceNumber);
-    sequenceNumber = sequenceNumber + 1;
-    frameToSend->setSendingTime(timeToSend);
+        auto it = FlipMapList->find(std::get<0>(final_option));
+        if(it != FlipMapList->end()){
+            FlipOccupation& fo = (it->second);
+            fo.occ[std::get<1>(final_option)] = std::get<2>(final_option);
+        }
 
-    // Transmit that packet
-    socket.sendTo(frameToSend, final_gw, destPort);
+        // Create a packet to transmit
+        AeseAppPacket *datapacket = new AeseAppPacket("JoinReply");
+        datapacket->setMsgType(JOIN_REPLY);
+        datapacket->setLoRaCF(inet::units::values::Hz(final_channel));
+
+        LoRaMacFrame *frameToSend = new LoRaMacFrame("JoinReply");
+        frameToSend->setMsgType(JOIN_REPLY);
+        frameToSend->encapsulate(datapacket);
+        frameToSend->setReceiverAddress(packetsToProcess[packetNumber].rcvdPacket->getTransmitterAddress());
+        frameToSend->setLoRaTP(14);
+        frameToSend->setLoRaCF(inet::units::values::Hz(869460500));
+        frameToSend->setLoRaSF(9);
+        frameToSend->setLoRaBW(packetsToProcess[packetNumber].rcvdPacket->getLoRaBW());
+        frameToSend->setLoRaCR(1);
+        sentMsgs++;
+        frameToSend->setSequenceNumber(sequenceNumber);
+        sequenceNumber = sequenceNumber + 1;
+        frameToSend->setSendingTime(timeToSend);
+
+        // Transmit that packet
+        socket.sendTo(frameToSend, final_gw, destPort);
+    }
 
     // Clean UP
     delete packetsToProcess[packetNumber].rcvdPacket;

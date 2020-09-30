@@ -45,10 +45,10 @@ void NeighbourTalkerV2::startUDP()
 
 void NeighbourTalkerV2::handleMessage(cMessage *msg)
 {
-    // if (AeseGWMode == NO_NEIGHBOUR){
-    //     delete msg;
-    //     return;
-    // }
+    if (AeseGWMode == NO_NEIGHBOUR){
+        delete msg;
+        return;
+    }
 
     if (msg->arrivedOn("lowerLayerIn")) {
         EV << "Received message from Lower Layer" << endl;
