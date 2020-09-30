@@ -77,6 +77,20 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     std::vector<receivedPacket> receivedPackets;
     std::vector<receivedPacket> packetsToProcess;
 
+    struct FlipOccupation
+    {
+      float occ[3];
+      FlipOccupation() {}
+    };
+
+    struct L3Addr_compare
+    {
+        bool operator()(const L3Address& d1, const L3Address& d2) const { return d1 == d2; }
+    };
+
+    typedef std::map<L3Address, FlipOccupation, L3Addr_compare> FlipMap;
+    FlipMap *FlipMapList = nullptr;
+    
     std::vector<L3Address> destAddresses;
     int localPort = -1, destPort = -1;
     std::vector<std::tuple<DevAddr, int>> recvdPackets;
@@ -91,6 +105,9 @@ class INET_API NetworkServerApp : public cSimpleModule, cListener
     unsigned long int sequenceNumber;
     unsigned long receivedSomething;
     cOutVector numberOfReceivedFrames;
+    
+    typedef std::vector<std::tuple<L3Address,int,int>> optionsGWChannel; // gw, channel, entropy
+    FlipOccupation totalChannelOccupation;
 
   protected:
     virtual void initialize(int stage) override;

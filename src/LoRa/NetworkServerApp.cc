@@ -50,6 +50,10 @@ void NetworkServerApp::initialize(int stage)
         sequenceNumber = 0;
         receivedSomething = 0;
         sentMsgs = 0;
+        FlipMapList = new FlipMap();
+        totalChannelOccupation.occ[0] = 0;
+        totalChannelOccupation.occ[1] = 0;
+        totalChannelOccupation.occ[2] = 0;
     }
 }
 
@@ -328,9 +332,31 @@ void NetworkServerApp::processJoinRequest(cMessage* selfMsg)
     auto timeToSend = packetsToProcess[packetNumber].timeToSend;
     // Choose the best gateway to use from that array based on 
     // FLIP's functions
+
     L3Address gw;
-    double SNIRinGW = -99999999999;
-    double RSSIinGW = -99999999999;
+    
+    // double SNIRinGW = -99999999999;
+    // double RSSIinGW = -99999999999;
+
+    // for(uint i=0;i<packetsToProcess.size();i++)
+    // {
+    //     if(packetsToProcess[i].rcvdPacket->getTransmitterAddress() == frame->getTransmitterAddress() && packetsToProcess[i].rcvdPacket->getSequenceNumber() == frame->getSequenceNumber())
+    //     {
+    //         for(uint j=0;j<packetsToProcess[i].possibleGateways.size();j++)
+    //         {
+    //             if(SNIRinGW < std::get<1>(packetsToProcess[i].possibleGateways[j]))
+    //             {
+    //                 RSSIinGW = std::get<2>(packetsToProcess[i].possibleGateways[j]);
+    //                 SNIRinGW = std::get<1>(packetsToProcess[i].possibleGateways[j]);
+    //                 gw = std::get<0>(packetsToProcess[i].possibleGateways[j]);
+    //             }
+    //         }
+    //     }
+    // }
+    double minimum_weight = 0;
+    optionsGWChannel oGC; 
+    double max_entropy = -99999999;
+    std::tuple<L3Address,int,int> final_option;
 
     for(uint i=0;i<packetsToProcess.size();i++)
     {
@@ -338,20 +364,62 @@ void NetworkServerApp::processJoinRequest(cMessage* selfMsg)
         {
             for(uint j=0;j<packetsToProcess[i].possibleGateways.size();j++)
             {
-                if(SNIRinGW < std::get<1>(packetsToProcess[i].possibleGateways[j]))
-                {
-                    RSSIinGW = std::get<2>(packetsToProcess[i].possibleGateways[j]);
-                    SNIRinGW = std::get<1>(packetsToProcess[i].possibleGateways[j]);
-                    gw = std::get<0>(packetsToProcess[i].possibleGateways[j]);
+                gw = std::get<0>(packetsToProcess[i].possibleGateways[j]);
+                auto iter = FlipMapList->find(gw);
+                if(iter == FlipMapList->end()){
+                    (*FlipMapList)[gw] = FlipOccupation();
+                    if(minimum_weight == 0){
+                        oGC.emplace_back(gw,0,0);
+                        oGC.emplace_back(gw,1,0);
+                        oGC.emplace_back(gw,2,0);
+                    }
+                }else{
+                    auto fo = iter->second;
+                    for (int k=0;k<3;k++){
+                        if(fo.occ[k] <= minimum_weight) { 
+                            oGC.emplace_back(gw,k,0);
+                            minimum_weight = fo.occ[k];
+                        }
+                    }
                 }
             }
+            double weight = pow(2,frame->getLoRaSF() - 7);
+            double total = totalChannelOccupation.occ[0] + totalChannelOccupation.occ[1] + totalChannelOccupation.occ[2] + weight;
+
+            auto entropyoGC = new optionsGWChannel();
+            for(uint j=0;j<oGC.size();j++){
+                int channel = std::get<1>(oGC[j]);
+                totalChannelOccupation.occ[channel] += weight;
+                double entropy = 0;
+                for(int k=0;k<3;k++){
+                    double frequency = totalChannelOccupation.occ[k] / total;
+                    entropy += -(frequency * log2(frequency));
+                }
+                totalChannelOccupation.occ[channel] -= weight;
+                if(entropy > max_entropy) {
+                    entropyoGC->clear();
+                    max_entropy = entropy;
+                    entropyoGC->emplace_back(std::get<0>(oGC[j]),channel,entropy);
+                }else if(entropy == max_entropy){
+                    entropyoGC->emplace_back(std::get<0>(oGC[j]),channel,entropy);
+                }
+            }
+            final_option = entropyoGC->at(intuniform(0,entropyoGC->size()));
         }
     }
+    
+    L3Address final_gw;
+    double final_channel;
+    
+    final_gw = std::get<0>(final_option);
+    final_channel = 868100000 + (std::get<1>(final_option) * 200000);
+    auto it = FlipMapList->find(std::get<0>(final_option));
+    (it->second).occ[std::get<1>(final_option)] += std::get<2>(final_option);
 
     // Create a packet to transmit
     AeseAppPacket *datapacket = new AeseAppPacket("JoinReply");
     datapacket->setMsgType(JOIN_REPLY);
-    datapacket->setLoRaCF(inet::units::values::Hz(868100000));
+    datapacket->setLoRaCF(inet::units::values::Hz(final_channel));
 
     LoRaMacFrame *frameToSend = new LoRaMacFrame("JoinReply");
     frameToSend->setMsgType(JOIN_REPLY);
@@ -368,7 +436,7 @@ void NetworkServerApp::processJoinRequest(cMessage* selfMsg)
     frameToSend->setSendingTime(timeToSend);
 
     // Transmit that packet
-    socket.sendTo(frameToSend, gw, destPort);
+    socket.sendTo(frameToSend, final_gw, destPort);
 
     // Clean UP
     delete packetsToProcess[packetNumber].rcvdPacket;

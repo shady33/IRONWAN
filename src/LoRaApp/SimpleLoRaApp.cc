@@ -234,7 +234,7 @@ void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(packet->getMsgType() == JOIN_REPLY){
         receivedAckMessages++;
-        // loRaCF = packet->getLoRaCF();
+        loRaCF = packet->getLoRaCF();
         connected = true;
     }else{
         if(retryLimit > 1){
