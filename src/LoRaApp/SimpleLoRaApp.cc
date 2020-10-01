@@ -234,7 +234,7 @@ void SimpleLoRaApp::handleMessageFromLowerLayer(cMessage *msg)
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>(msg);
     if(packet->getMsgType() == JOIN_REPLY){
         receivedAckMessages++;
-        // loRaCF = packet->getLoRaCF();
+        loRaCF = packet->getLoRaCF();
         connected = true;
     }else{
         if(retryLimit > 1){
@@ -285,7 +285,7 @@ void SimpleLoRaApp::sendDataPacket()
     request->setPacketGeneratedTime(1,simTime()+timeOnAirValue);
     request->setSensorNumber(sensorNumber);
     request->setActuatorSequenceNumbers(0,seqeuenceNumber);
-
+    
     //add LoRa control info
     LoRaMacControlInfo *cInfo = new LoRaMacControlInfo;
     cInfo->setLoRaTP(loRaTP);

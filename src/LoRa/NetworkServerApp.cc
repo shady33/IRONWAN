@@ -653,7 +653,7 @@ void NetworkServerApp::evaluateADR(LoRaMacFrame* pkt, L3Address pickedGateway, d
         socket.sendTo(frameToSend, pickedGateway, destPort);
     }else if(sendACK){
         AeseAppPacket *downlink = new AeseAppPacket("ACKCommand");
-        downlink->setMsgType(JOIN_REPLY);
+        downlink->setMsgType(DATADOWN);
         LoRaMacFrame *frameToSend = new LoRaMacFrame("ACKPacket");
         frameToSend->setMsgType(ACK_ADR_PACKET);
         frameToSend->encapsulate(downlink);
