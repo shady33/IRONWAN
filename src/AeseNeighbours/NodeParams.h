@@ -13,6 +13,7 @@ class INET_API NodeParams :public cSimpleModule
     void finish();
 
   protected:
+    int nodeParamsRetryLimit;
     int numberOfNodes;
     int ratioOfAckToTotal;
     int currentNumberOfAckedNodes;

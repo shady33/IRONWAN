@@ -99,6 +99,16 @@ void ReinforcementLearning::handleLoRaFrame(cPacket *pkt)
         // This is a Broadcast packet, and we are only interested in uplinks from nodes
         int channelNumber = ((frame->getLoRaCF() - inet::units::values::Hz(868100000))/inet::units::values::Hz(200000)).get();
         messages_in_last_slot[channelNumber] = messages_in_last_slot[channelNumber] + 1;
+
+        int PayloadLength = frame->getPayloadLength();
+        if(PayloadLength == 0)
+            PayloadLength = 20;
+        double toa = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
+        toa = toa - 0.1;
+        double pastToUpdate = std::max(0,std::min(int(ceil(toa/0.1)),numberOfPastSlots));
+        for(int i=0;i<pastToUpdate;i++){
+            current_channel_state[channelNumber] = ((1 << (4*i)) + current_channel_state[channelNumber]) & channels_mask; 
+        }
     }
     delete packet;
     delete pkt;
@@ -115,6 +125,7 @@ void ReinforcementLearning::updateStates()
 }
 
 // Function to update QTable. In random and next there is no table
+// SARSA update policy
 void ReinforcementLearning::handleUpdatingTable()
 {
     if(actionsTaken.size() == numberOfFutureSlots){
@@ -257,8 +268,22 @@ ReinforcementLearning::ActionChosen ReinforcementLearning::whichSlotDoIUse()
 double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalculateRewardFor)
 {
     // No Action was taken
-    if(actionToCalculateRewardFor.slot == 0)
-        return 0.0;
+    // Function updated to account for new missed opprtunities 
+    if(actionToCalculateRewardFor.slot == 0){
+	//double reward = 0;
+        //for (int channel=0;channel<3;channel++){
+        //    for (int slot=1;slot<numberOfFutureSlots + 1;slot++){
+        //        uint8_t messages_at_slot = (current_channel_state[channel] >> ((slot - 1) * 4)) & (0xF);
+        //        if (messages_at_slot > 0){
+        //            reward = reward - (-2.0 * messages_at_slot) * (((double)numberOfFutureSlots-(slot - 1))/(double)numberOfFutureSlots);
+        //        }else{
+        //            reward = reward - (1.0-((double)(slot - 1)/(double)numberOfFutureSlots));
+        //        }
+        //    }
+        //}
+        //return reward;
+	return 0;
+    }
 
     double reward;
     uint8_t messages_at_slot = (current_channel_state[actionToCalculateRewardFor.channel] >> ((actionToCalculateRewardFor.slot - 1) * 4)) & (0xF);

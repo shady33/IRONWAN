@@ -2,7 +2,7 @@ package loranetwork.AeseNeighbours;
 
 simple ReinforcementLearning
 {
-    int numberOfPastSlots = default(8);
+    int numberOfPastSlots = default(4);
     int numberOfFutureSlots = default(8);
     double alphaRL = default(0.8);
     double discountFactor = default(0.1);
