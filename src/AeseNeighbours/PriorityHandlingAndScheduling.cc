@@ -80,7 +80,11 @@ bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
 void PriorityHandlingAndScheduling::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
-    rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
+    // rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
+    if(frame->getMsgType() == 0)
+        rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
+    else
+        rx_counters[frame->getType()] = rx_counters[frame->getType()] + 1;
     if((frame->getMsgType() == GW_HANDOFF_MESSAGE)){
         send(msg,"neighbourTalkerOut");
     }else{
@@ -131,7 +135,10 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             for(auto it=sendingQueue[band].begin();it!=sendingQueue[band].end();it++){
                 if(simTime() == (*it).sendingTime){
                     LoRaMacFrame* frame = (*it).frame;
-                    tx_counters[frame->getMsgType()] = tx_counters[frame->getMsgType()] + 1;
+                    if(frame->getMsgType() == 0)
+                        tx_counters[frame->getMsgType()] = tx_counters[frame->getMsgType()] + 1;
+                    else
+                        tx_counters[frame->getType()] = tx_counters[frame->getType()] + 1;
                     send(frame,"lowerLayerOut");
                     sendingQueue[band].erase(it++);
                     break;
