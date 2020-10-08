@@ -144,7 +144,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                                 scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
                             }
                         }else if(AeseGWMode == 1){
-                            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.8), nodePeriodInfo.msg);
+                            scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.1,0.3), nodePeriodInfo.msg);
                         }
                     }
                     // if( (nodePeriodInfo.currentPeriod > 0) && (AeseGWMode > 0) )

@@ -270,19 +270,18 @@ double ReinforcementLearning::calculateReward(struct ActionsInQueue actionToCalc
     // No Action was taken
     // Function updated to account for new missed opprtunities 
     if(actionToCalculateRewardFor.slot == 0){
-	//double reward = 0;
-        //for (int channel=0;channel<3;channel++){
-        //    for (int slot=1;slot<numberOfFutureSlots + 1;slot++){
-        //        uint8_t messages_at_slot = (current_channel_state[channel] >> ((slot - 1) * 4)) & (0xF);
-        //        if (messages_at_slot > 0){
-        //            reward = reward - (-2.0 * messages_at_slot) * (((double)numberOfFutureSlots-(slot - 1))/(double)numberOfFutureSlots);
-        //        }else{
-        //            reward = reward - (1.0-((double)(slot - 1)/(double)numberOfFutureSlots));
-        //        }
-        //    }
-        //}
-        //return reward;
-	return 0;
+        double reward = 0;
+        // for (int channel=0;channel<3;channel++){
+        //     for (int slot=1;slot<numberOfFutureSlots + 1;slot++){
+        //         uint8_t messages_at_slot = (current_channel_state[channel] >> ((slot - 1) * 4)) & (0xF);
+        //         if (messages_at_slot > 0){
+        //             reward = reward - (-2.0 * messages_at_slot) * (((double)numberOfFutureSlots-(slot - 1))/(double)numberOfFutureSlots);
+        //         }else{
+        //             reward = reward - (1.0-((double)(slot - 1)/(double)numberOfFutureSlots));
+        //         }
+        //     }
+        // }
+        return reward;
     }
 
     double reward;

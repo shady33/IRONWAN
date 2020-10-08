@@ -12,7 +12,14 @@ PriorityHandlingAndScheduling::~PriorityHandlingAndScheduling()
 
 void PriorityHandlingAndScheduling::finish()
 {
-
+    for(int i=0;i<8;i++){
+        std::stringstream ss1;
+        ss1 << "TXPHS" << i;
+        recordScalar(ss1.str().c_str(),tx_counters[i]);
+        std::stringstream ss2;
+        ss2 << "RXPHS" << i;
+        recordScalar(ss2.str().c_str(),rx_counters[i]);
+    }
 }
 
 bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
@@ -73,6 +80,7 @@ bool PriorityHandlingAndScheduling::handleUpperPacket(cPacket *msg)
 void PriorityHandlingAndScheduling::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
+    rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
     if((frame->getMsgType() == GW_HANDOFF_MESSAGE)){
         send(msg,"neighbourTalkerOut");
     }else{
@@ -97,7 +105,10 @@ void PriorityHandlingAndScheduling::initialize(int stage)
         lastPriority[1] = 99999;
         AeseGWMode = (int)par("AeseGWMode");
     }else if (stage == INITSTAGE_APPLICATION_LAYER) {
-
+        for(int i=0;i<8;i++) {
+            tx_counters[i] = 0;
+            rx_counters[i] = 0;
+        }
     }
 }
 
@@ -120,6 +131,7 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             for(auto it=sendingQueue[band].begin();it!=sendingQueue[band].end();it++){
                 if(simTime() == (*it).sendingTime){
                     LoRaMacFrame* frame = (*it).frame;
+                    tx_counters[frame->getMsgType()] = tx_counters[frame->getMsgType()] + 1;
                     send(frame,"lowerLayerOut");
                     sendingQueue[band].erase(it++);
                     break;
