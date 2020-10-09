@@ -249,6 +249,7 @@ void NeighbourTalkerV2::handleFailedAcks(LoRaMacFrame *frame)
         inet::units::values::Hz freq = inet::units::values::Hz((act.channel * 200000) + 868100000);
         inet::units::values::Hz bw = inet::units::values::Hz(125000);
         msg->setMsgType(GW_HANDOFF_MESSAGE);
+        msg->setType(FIND_NEIGHBOURS_FOR_DOWNLINK);
         msg->setLoRaTP(14);
         msg->setLoRaCF(freq);
         msg->setLoRaSF(7);
@@ -285,6 +286,8 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
                     inet::units::values::Hz freq = inet::units::values::Hz((act.channel * 200000) + 868100000);
                     frameToSend->setLoRaCF(freq);
                     frameToSend->setSendingTime(sendingTime);
+                    frameToSend->setLoRaTP(14);                    
+                    frameToSend->setLoRaSF(7);
                     rebroadcastingAnUplink = rebroadcastingAnUplink + 1;
                     send(frameToSend,"lowerLayerOut");
                 }
