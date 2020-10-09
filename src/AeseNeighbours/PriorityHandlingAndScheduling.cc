@@ -81,7 +81,7 @@ void PriorityHandlingAndScheduling::handleLowerPacket(cPacket *msg)
 {
     LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
     // rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
-    if(frame->getMsgType() == 0)
+    if(frame->getType() != 0)
         rx_counters[frame->getMsgType()] = rx_counters[frame->getMsgType()] + 1;
     else
         rx_counters[frame->getType()] = rx_counters[frame->getType()] + 1;
@@ -135,7 +135,7 @@ void PriorityHandlingAndScheduling::handleMessage(cMessage *msg)
             for(auto it=sendingQueue[band].begin();it!=sendingQueue[band].end();it++){
                 if(simTime() == (*it).sendingTime){
                     LoRaMacFrame* frame = (*it).frame;
-                    if(frame->getMsgType() == 0)
+                    if(frame->getType() != 0)
                         tx_counters[frame->getMsgType()] = tx_counters[frame->getMsgType()] + 1;
                     else
                         tx_counters[frame->getType()] = tx_counters[frame->getType()] + 1;
