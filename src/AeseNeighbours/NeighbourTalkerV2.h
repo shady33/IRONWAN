@@ -109,6 +109,8 @@ class INET_API NeighbourTalkerV2 : public cSimpleModule, public cListener
     cMessage *checkAnyUnsentMessages;
     // cMessage *devAddrMessage;
     SupportedProtocols currentProtocol;
+    cOutVector diffInCounters;
+    cOutVector diffInTimes;
 
   protected:
     UDPSocket socket;
