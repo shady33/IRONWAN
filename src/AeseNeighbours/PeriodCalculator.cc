@@ -19,6 +19,7 @@ PeriodCalculator::~PeriodCalculator()
 void PeriodCalculator::finish()
 {
     recordScalar("RequestedPeriods",requestedperiods);
+    recordScalar("NumberOfNodePeriodsList",NodePeriodsList->size());
     // auto iter = NodePeriodsList->begin();
     // while(iter != NodePeriodsList->end()) {
     //     NodePeriodInfo& nodePeriodInfo = iter->second;
