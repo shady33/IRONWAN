@@ -18,6 +18,9 @@ void NeighbourTalkerV2::initialize(int stage)
     if (stage == 0) {
         AeseGWMode = (AeseGWModes)(int)par("AeseGWMode");
         currentProtocol = LORA;
+        diffInCounters.setName("DiffInCounters");
+        diffInTimes.setName("DiffInTimes");
+
     }else if (stage == INITSTAGE_APPLICATION_LAYER){
         ReceivedPacketsList = new ReceivedPacketsMap();
         DownlinkLastDropRequestList = new DownlinkLastDropRequest();
@@ -271,9 +274,13 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
     // Do I know this node?
     if(iter != ReceivedPacketsList->end()){
         int lastSeenSeqNo  = (iter->second).lastSeqNo;
+        auto insertionTime = (iter->second).insertionTime;
+        
+        diffInCounters.record(lastSeenSeqNo-frame->getSequenceNumber());
+        diffInTimes.record(simTime()- insertionTime);
+
         // I have a newer packet
         if(lastSeenSeqNo > frame->getSequenceNumber()){
-            auto insertionTime = (iter->second).insertionTime;
             // Have I seen the node in last 2 seconds? Or is it a non-confirmed node?
             if((simTime() - insertionTime < 2) || (!frame->getIsConfirmed())){
                 ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
