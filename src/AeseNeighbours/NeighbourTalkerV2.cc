@@ -55,11 +55,11 @@ void NeighbourTalkerV2::handleMessage(cMessage *msg)
         // LoRaMacFrame *frame = dynamic_cast<LoRaMacFrame*>(msg);
         handleLowerLayer(PK(msg));
     }else if(msg->arrivedOn("periodIn")){
-        if(AeseGWMode > NO_NEIGHBOUR){
+        if((AeseGWMode == ALL_NEIGHBOUR) || (AeseGWMode == UPLINK_ONLY)){
             handlePeriodIn(PK(msg));
         }
     }else if(msg->arrivedOn("udpIn")){
-        if(AeseGWMode > NO_NEIGHBOUR){
+        if((AeseGWMode == ALL_NEIGHBOUR) || (AeseGWMode == UPLINK_ONLY)){
             send(PK(msg),"periodOut");
         }else{
             delete msg;
@@ -136,8 +136,8 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
         //handleFailedAcks(frame);
     	if (AeseGWMode == NO_NEIGHBOUR){
 	    	delete frame;
-	    }else if(AeseGWMode > NO_NEIGHBOUR){
-		handleFailedAcks(frame);
+	    }else if((AeseGWMode == ALL_NEIGHBOUR )|| (AeseGWMode == DOWNLINK_ONLY)){
+		    handleFailedAcks(frame);
 	    }
     }else if(frame->getType() == FIND_NEIGHBOURS_FOR_UPLINK){
         // std::cout << "Received FIND_NEIGHBOURS_FOR_UPLINK" << std::endl;
@@ -184,16 +184,17 @@ void NeighbourTalkerV2::handleLoRaFrame(cPacket *pkt)
                     ReceivedPacket& rxPkt = iter->second;
                     if(((simTime() - rxPkt.insertionTime) < 2) && (scheduler->canThisBeScehduled(1,ACCEPTED_BIDS_ACKS,msg->getSendingTime()))){
                         // Decapsulate and add the correct type
-                        if((AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
-                        // if((AeseGWMode == NEIGHBOUR_WITH_BIDS) || (AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
-                            if (intuniform(0,10) < 5){
-                                transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
-                                send(msg->dup(),"lowerLayerOut");
-                            }
-                        }else{
+                        // if((AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
+                        // // if((AeseGWMode == NEIGHBOUR_WITH_BIDS) || (AeseGWMode == NEIGHBOUR_WITH_BIDS_RANDOM)){
+                        //     if (intuniform(0,10) < 5){
+                        //         transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
+                        //         send(msg->dup(),"lowerLayerOut");
+                        //     }
+                        // }else{
+                            msg->setType(ACCEPTED_BIDS_ACKS);
                             transmittedSomeoneDownlink = transmittedSomeoneDownlink + 1;
                             send(msg->dup(),"lowerLayerOut");
-                        }
+                        // }
                     }
                 }
                 delete msg;

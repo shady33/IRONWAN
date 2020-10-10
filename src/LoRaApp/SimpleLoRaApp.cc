@@ -252,7 +252,7 @@ void SimpleLoRaApp::handleMessage(cMessage *msg)
                 i = i + 1;
                 if(i==5) break;
             } while(timeToNextPacket <= time);
-	    if((simTime() > 43200) && (!switched)){
+	    if((simTime() > 86400) && (!switched)){
 	    	switched = true;
 		if(uniform(0,10) < 4){
 			timeToNextPacketOnce = 600;
