@@ -284,8 +284,8 @@ void NeighbourTalkerV2::handleFindNeighboursForUplink(cPacket *pkt)
             // Have I seen the node in last 2 seconds? Or is it a non-confirmed node?
             if((simTime() - insertionTime < 2) || (!frame->getIsConfirmed())){
                 ReinforcementLearning::ActionChosen act = rl->whichSlotDoIUse();
-                // simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
-                simtime_t sendingTime = simTime() + 0.1;
+                simtime_t sendingTime = simTime() + ((act.slot-1)*0.1);
+                // simtime_t sendingTime = simTime() + 0.1;
                 bool scheduled = scheduler->canThisBeScehduled(0,SEND_ACCEPT_BIDS_FOR_NEIGHBOURS,sendingTime);
                 if(scheduled){
                     auto f = (iter->second).frame;

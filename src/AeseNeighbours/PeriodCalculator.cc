@@ -126,6 +126,9 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 nodePeriodInfo.lastReceivedTime = simTime();
                 nodePeriodInfo.lastSeqNo = packet->getActuatorSequenceNumbers(0);
                 // Exactly 10 elements in the array
+                if(nodePeriodInfo.numberOfMessagesSeen == 2){
+                    nodePeriodInfo.currentPeriod = stats.median;
+                }
                 if(nodePeriodInfo.listOfPeriods.size() == 10){
                     Statistics stats = calculateTValueAndOthers(nodePeriodInfo.listOfPeriods);
                     if((stats.tValue <= tValue) || (stats.stdev == 0)){
@@ -137,7 +140,7 @@ void PeriodCalculator::handleLoRaFrame(cPacket *pkt)
                 }
 
                 // Start a timer if we can do the period stuff here
-                if(nodePeriodInfo.numberOfMessagesSeen > 11){
+                if(nodePeriodInfo.numberOfMessagesSeen > 2){
                     nodePeriodInfo.allPeriods->record(nodePeriodInfo.currentPeriod);
                     if(nodePeriodInfo.currentPeriod > 0){
                         scheduleAt(simTime() + nodePeriodInfo.currentPeriod + uniform(0.2,0.5), nodePeriodInfo.msg);
