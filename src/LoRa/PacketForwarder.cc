@@ -334,10 +334,15 @@ void PacketForwarder::processLoraMACPacket(cPacket *pk)
     double toa = timeOnAir(frame->getLoRaSF(),frame->getLoRaBW(), PayloadLength, frame->getLoRaCR());
     listOfSuccessfulMessages.record(frame->getLoRaCF().get()+toa);
 
-    //(frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
-    listOfSuccessfulNodes.record((frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3));
-    macCntValues.record(frame->getSequenceNumber());
     AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->getEncapsulatedPacket());
+    uint32_t node_num_with_frames = (frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
+    node_num_with_frames = (node_num_with_frames << 16) + packet->getActuatorSequenceNumbers(0);
+    listOfSuccessfulNodes.record(node_num_with_frames);
+    
+    //(frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3);
+    // listOfSuccessfulNodes.record((frame->getTransmitterAddress().getAddressByte(2) << 8) + frame->getTransmitterAddress().getAddressByte(3));
+    macCntValues.record(frame->getSequenceNumber());
+    // AeseAppPacket *packet = check_and_cast<AeseAppPacket *>((frame)->getEncapsulatedPacket());
     actualCntValues.record(packet->getActuatorSequenceNumbers(0));
 
     int packettype = frame->getMsgType();
